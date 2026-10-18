@@ -1151,10 +1151,20 @@ body.kiosk-mode [data-mobile-nav="true"] {
   padding: 2px 4px;
 }
 
+/* 데스크톱/전자칠판 기본 상태에서는 모바일 전용 보조 요소 숨김 (전자칠판 레이아웃 100% 보존) */
+.tt-subj-mobile,
+.tt-th-mobile,
+.tt-day-short,
+.tt-time-short,
+.hp-mobile-sub,
+.hp-mobile-type-tag {
+  display: none;
+}
+
 /* ========================================================
-   스마트폰(모바일) 접속 인식 전용 최적화 (body.is-smartphone)
+   스마트폰(모바일) 접속 인식 전용 최적화 (html.is-smartphone / body.is-smartphone)
    - 데스크톱/전자칠판 레이아웃은 100% 보존하며,
-     스마트폰으로 접속했을 때만 활성화되어 안정적인 모바일 UI를 제공
+     스마트폰으로 접속했을 때만 활성화되어 실용적이고 안정적인 모바일 UI를 제공
    ======================================================== */
 html.is-smartphone,
 body.is-smartphone {
@@ -1165,232 +1175,410 @@ body.is-smartphone {
   -webkit-text-size-adjust: 100%;
 }
 
+html.is-smartphone body,
 body.is-smartphone {
   padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /* 스마트폰에서는 전자칠판 전용 전체화면(키오스크) 버튼 숨김 */
-body.is-smartphone #btn-fullscreen,
-body.is-smartphone #btn-kiosk-toggle {
+html.is-smartphone #btn-fullscreen,
+html.is-smartphone #btn-kiosk-toggle {
   display: none !important;
 }
 
-/* 스마트폰 헤더 최적화 */
-body.is-smartphone header > div {
-  padding: 0.55rem 0.85rem !important;
+/* 스마트폰 헤더: 한 줄 정렬 및 터치 영역 최적화 */
+html.is-smartphone header > div {
+  padding: 0.5rem 0.75rem !important;
 }
-body.is-smartphone #header-student-badge {
-  font-size: 0.7rem !important;
-  padding: 0.15rem 0.55rem !important;
+html.is-smartphone header h1 {
+  font-size: 0.92rem !important;
+}
+html.is-smartphone #header-student-badge {
+  font-size: 0.68rem !important;
+  padding: 0.15rem 0.5rem !important;
 }
 
 /* 스마트폰 메인 컨테이너 및 각 탭 보드: 고정 높이 해제 후 자연스러운 카드 스택 */
-body.is-smartphone main {
-  padding: 0.65rem 0.75rem 1.25rem !important;
+html.is-smartphone main {
+  padding: 0.55rem 0.65rem 1.25rem !important;
   height: auto !important;
   overflow: visible !important;
 }
-body.is-smartphone #home-board,
-body.is-smartphone #meal-board,
-body.is-smartphone #sched-board,
-body.is-smartphone #timetable-board {
+html.is-smartphone #home-board,
+html.is-smartphone #meal-board,
+html.is-smartphone #sched-board,
+html.is-smartphone #timetable-board {
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 0.75rem !important;
+  gap: 0.65rem !important;
 }
 
-/* 스마트폰 홈: 실시간 교시 상황판 세로/가로 안정화 */
-body.is-smartphone #classroom-live-bar {
-  padding: 0.85rem 0.95rem !important;
-  gap: 0.75rem !important;
+/* 스마트폰 홈: 실시간 교시 상황판 가독성 및 정돈 */
+html.is-smartphone #classroom-live-bar {
+  padding: 0.75rem 0.85rem !important;
+  gap: 0.55rem !important;
   flex-wrap: wrap !important;
+  align-items: flex-start !important;
 }
-body.is-smartphone .live-badge {
-  font-size: 0.88rem !important;
-  padding: 0.45rem 0.8rem !important;
-  border-radius: 0.7rem !important;
+html.is-smartphone .live-badge {
+  font-size: 0.8rem !important;
+  padding: 0.38rem 0.7rem !important;
+  border-radius: 0.65rem !important;
 }
-body.is-smartphone #live-period-headline {
-  font-size: 0.98rem !important;
+html.is-smartphone #live-period-headline {
+  font-size: 0.95rem !important;
+  line-height: 1.3 !important;
   white-space: normal !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
+  word-break: keep-all !important;
 }
-body.is-smartphone #live-period-desc {
-  font-size: 0.75rem !important;
+html.is-smartphone #live-period-desc {
+  font-size: 0.73rem !important;
+  line-height: 1.3 !important;
   white-space: normal !important;
 }
 
-/* 스마트폰 홈: 오늘 시간표 교시 카드 터치 친화적 높이 및 폰트 */
-body.is-smartphone .home-period-card {
-  min-height: 50px !important;
-  padding: 0.5rem 0.75rem !important;
+/* 스마트폰 홈: 오늘 우리반 시간표 (과목명 절대 잘림 방지 + 2줄 실용 배치) */
+html.is-smartphone #home-timetable-list {
+  gap: 0.4rem !important;
+}
+html.is-smartphone .home-period-card {
+  min-height: 54px !important;
+  padding: 0.45rem 0.65rem !important;
   flex: none !important;
+  gap: 0.5rem !important;
 }
-body.is-smartphone .home-period-card .hp-num {
-  width: 2.1rem !important;
-  height: 2.1rem !important;
+html.is-smartphone .home-period-card .hp-num {
+  width: 2rem !important;
+  height: 2rem !important;
+  font-size: 0.9rem !important;
+  border-radius: 0.55rem !important;
+}
+html.is-smartphone .home-period-card .hp-subject {
   font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
 }
-body.is-smartphone .home-period-card .hp-subject {
-  font-size: 1rem !important;
-}
-body.is-smartphone .home-period-card .hp-teacher {
-  font-size: 0.75rem !important;
-}
-body.is-smartphone .home-period-card .hp-time {
+html.is-smartphone .home-period-card .hp-teacher {
   font-size: 0.72rem !important;
+}
+html.is-smartphone .home-period-card .hp-mobile-type-tag {
+  display: inline-flex !important;
+  align-items: center;
+}
+html.is-smartphone .home-period-card .hp-mobile-sub {
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: #64748b;
+  min-width: 0;
+}
+.dark.is-smartphone .home-period-card .hp-mobile-sub,
+html.is-smartphone.dark .home-period-card .hp-mobile-sub {
+  color: #94a3b8;
+}
+html.is-smartphone .home-period-card .hp-mobile-sched-preview {
+  color: #e11d48;
+  font-weight: 700;
+}
+html.is-smartphone.dark .home-period-card .hp-mobile-sched-preview {
+  color: #fb7185;
+}
+/* 스마트폰 홈 시간표 우측에는 배지/이모티콘과 NOW만 깔끔하게 표시 (시간/창체 태그는 좌측에 통합 표시) */
+html.is-smartphone .home-period-card .hp-right > .hp-time,
+html.is-smartphone .home-period-card .hp-right > .hp-desktop-type-tag {
+  display: none !important;
 }
 
 /* 스마트폰 홈: 오늘의 급식 2열 메뉴 가독성 확보 */
-body.is-smartphone #home-meal-preview-grid > div {
-  min-height: 150px !important;
+html.is-smartphone #home-meal-preview-grid > div {
+  min-height: 140px !important;
+  padding: 0.75rem 0.85rem !important;
 }
-body.is-smartphone .home-dish-list {
-  font-size: 0.88rem !important;
-  row-gap: 0.35rem !important;
-  column-gap: 0.65rem !important;
-  grid-auto-rows: minmax(22px, auto) !important;
+html.is-smartphone .home-dish-list {
+  font-size: 0.82rem !important;
+  row-gap: 0.3rem !important;
+  column-gap: 0.5rem !important;
+  grid-auto-rows: minmax(20px, auto) !important;
+}
+html.is-smartphone .home-dish-list li {
+  white-space: normal !important;
+  line-height: 1.25 !important;
+  word-break: keep-all !important;
 }
 
 /* 스마트폰 홈: 우측 영역 (D-Day / 실시간 날씨 / 다가오는 학사일정) */
-body.is-smartphone #top-dday-banner {
-  padding: 1rem 1.1rem !important;
+html.is-smartphone #top-dday-banner {
+  padding: 0.9rem 1rem !important;
 }
-body.is-smartphone #banner-dday-count {
-  font-size: 2.75rem !important;
+html.is-smartphone #banner-dday-count {
+  font-size: 2.5rem !important;
 }
-body.is-smartphone #banner-dday-sub {
-  font-size: 0.95rem !important;
+html.is-smartphone #banner-dday-sub {
+  font-size: 0.9rem !important;
 }
-body.is-smartphone #home-weather-widget {
-  padding: 0.85rem 1rem !important;
-  min-height: 165px !important;
+html.is-smartphone #home-weather-widget {
+  padding: 0.8rem 0.95rem !important;
+  min-height: 160px !important;
 }
-body.is-smartphone .home-sched-item {
-  min-height: 48px !important;
-  padding: 0.45rem 0.75rem !important;
+html.is-smartphone .home-sched-item {
+  min-height: 46px !important;
+  padding: 0.45rem 0.7rem !important;
   flex: none !important;
 }
-body.is-smartphone .portal-mini-btn {
+html.is-smartphone .portal-mini-btn {
   padding: 0.55rem 0.25rem !important;
   font-size: 0.72rem !important;
 }
 
 /* 스마트폰 급식 탭 (Tab 2) 최적화 */
-body.is-smartphone #meal-header-bar {
-  padding: 0.85rem 1rem !important;
+html.is-smartphone #meal-header-bar {
+  padding: 0.8rem 0.9rem !important;
 }
-body.is-smartphone .meal-dish-row {
-  min-height: 44px !important;
-  padding: 0.4rem 0.8rem !important;
+html.is-smartphone #meal-header-bar > div:last-child {
+  width: 100% !important;
+}
+html.is-smartphone #meal-header-bar > div:last-child > div:last-child {
+  width: 100% !important;
+  justify-content: space-between !important;
+}
+html.is-smartphone .meal-dish-row {
+  min-height: 42px !important;
+  padding: 0.4rem 0.75rem !important;
   flex: none !important;
 }
-body.is-smartphone .meal-dish-row .mdr-name {
-  font-size: 0.95rem !important;
+html.is-smartphone .meal-dish-row .mdr-name {
+  font-size: 0.9rem !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  line-height: 1.25 !important;
 }
 
 /* 스마트폰 학사일정 탭 (Tab 3) 최적화 */
-body.is-smartphone #sched-top-bar > div:first-child {
+html.is-smartphone #sched-top-bar > div:first-child {
   flex-direction: column !important;
   align-items: stretch !important;
-  gap: 0.6rem !important;
+  gap: 0.55rem !important;
 }
-body.is-smartphone #sched-top-bar > div:first-child > div:first-child {
+html.is-smartphone #sched-top-bar > div:first-child > div:first-child {
   justify-content: space-between !important;
 }
-body.is-smartphone #sched-top-bar > div:first-child > div:last-child {
+html.is-smartphone #sched-top-bar > div:first-child > div:last-child {
   justify-content: space-between !important;
 }
-body.is-smartphone .grade-chip {
+html.is-smartphone .grade-chip {
   flex: 1 1 0 !important;
   text-align: center !important;
-  padding: 0.4rem 0.3rem !important;
+  padding: 0.4rem 0.25rem !important;
 }
-body.is-smartphone .calendar-day-cell {
-  min-height: 58px !important;
-  padding: 3px 2px !important;
+html.is-smartphone .calendar-day-cell {
+  min-height: 54px !important;
+  padding: 2px 1.5px !important;
+  border-radius: 8px !important;
 }
-body.is-smartphone .cal-event-badge {
-  font-size: 0.62rem !important;
-  padding: 1.5px 3px !important;
+html.is-smartphone .cal-event-badge {
+  font-size: 0.58rem !important;
+  padding: 1px 2px !important;
+  text-align: center !important;
+  border-radius: 3px !important;
 }
-body.is-smartphone #schedule-day-detail-card {
+html.is-smartphone #schedule-day-detail-card {
   max-height: none !important;
 }
-body.is-smartphone #schedule-selected-day-list,
-body.is-smartphone #schedule-list-container {
-  max-height: 280px !important;
+html.is-smartphone #schedule-selected-day-list,
+html.is-smartphone #schedule-list-container {
+  max-height: 260px !important;
 }
 
-/* 스마트폰 우리반 시간표 탭 (Tab 4): 가로 스크롤 없이 한 화면에 월~금 5일 표가 쏙 들어오도록 최적화 */
-body.is-smartphone #timetable-week-container {
+/* ========================================================
+   스마트폰 우리반 시간표 탭 (Tab 4):
+   - 월~금 5일 주간 시간표가 스마트폰 한 화면에 깨짐/겹침/잘림 없이 완벽하게 표시
+   - 하단 요일별 상세 & 과제 브리핑 카드와 유기적 연동
+   ======================================================== */
+html.is-smartphone #timetable-board .overflow-x-auto,
+html.is-smartphone #timetable-board #timetable-week-container {
   min-width: 0 !important;
   width: 100% !important;
+  height: auto !important;
+  flex: none !important;
+  overflow-x: hidden !important;
 }
-body.is-smartphone #timetable-board .timetable-table {
+html.is-smartphone #timetable-board .timetable-table {
   table-layout: fixed !important;
   width: 100% !important;
   height: auto !important;
 }
-body.is-smartphone #timetable-board .timetable-table th:first-child,
-body.is-smartphone #timetable-board .timetable-table td:first-child {
-  width: 52px !important;
-  padding: 0.35rem 0.15rem !important;
-}
-body.is-smartphone #timetable-board .timetable-table th,
-body.is-smartphone #timetable-board .timetable-table td {
-  padding: 0.25rem 0.15rem !important;
-}
-body.is-smartphone #timetable-board .timetable-slot-card {
-  min-height: 54px !important;
-  padding: 4px 2px !important;
-  border-radius: 0.65rem !important;
-}
-body.is-smartphone #timetable-board .timetable-slot-card .font-extrabold {
-  font-size: 0.72rem !important;
-  line-height: 1.15 !important;
-  white-space: normal !important;
-  word-break: keep-all !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-}
-body.is-smartphone .timetable-badge-group {
-  top: 1px !important;
-  right: 1px !important;
-  gap: 1.5px !important;
-}
-body.is-smartphone .timetable-schedule-badge {
-  min-width: 14px !important;
-  height: 14px !important;
-  font-size: 8.5px !important;
-  line-height: 14px !important;
-  padding: 0 2.5px !important;
-}
-body.is-smartphone .timetable-schedule-badge.is-emoji {
-  font-size: 13px !important;
+html.is-smartphone #timetable-board .timetable-table thead tr,
+html.is-smartphone #timetable-board .timetable-table tbody,
+html.is-smartphone #timetable-board .timetable-table tbody tr {
   height: auto !important;
 }
 
+/* 스마트폰 주간 시간표: 데스크톱용 긴 텍스트 숨기고 모바일용 컴팩트 텍스트 표시 */
+html.is-smartphone .tt-subj-desktop,
+html.is-smartphone .tt-th-desktop,
+html.is-smartphone .tt-day-full,
+html.is-smartphone .tt-time-full,
+html.is-smartphone .tt-perio-unit,
+html.is-smartphone .tt-lunch-suffix {
+  display: none !important;
+}
+html.is-smartphone .tt-subj-mobile,
+html.is-smartphone .tt-th-mobile,
+html.is-smartphone .tt-day-short,
+html.is-smartphone .tt-time-short {
+  display: inline !important;
+}
+
+/* 좌측 '교시' 열 폭을 34px로 슬림화하여 월~금 5개 요일 컬럼 폭 확보 */
+html.is-smartphone #timetable-board .timetable-table th:first-child,
+html.is-smartphone #timetable-board .timetable-table td:first-child {
+  width: 34px !important;
+  padding: 0.25rem 0.1rem !important;
+}
+html.is-smartphone #timetable-board .timetable-table th:first-child {
+  font-size: 0.68rem !important;
+}
+html.is-smartphone #timetable-board .timetable-table td:first-child .tt-perio-label {
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+html.is-smartphone #timetable-board .timetable-table td:first-child .tt-perio-time {
+  font-size: 0.56rem !important;
+  letter-spacing: -0.04em !important;
+  margin-top: 1px !important;
+}
+
+/* 요일 헤더(월~금) 컴팩트 스타일 */
+html.is-smartphone #timetable-board .timetable-table th[data-mobile-day-offset] {
+  padding: 0.35rem 0.1rem !important;
+  cursor: pointer;
+}
+html.is-smartphone #timetable-board .timetable-table th .tt-th-badge {
+  font-size: 0.55rem !important;
+  padding: 0 3px !important;
+  line-height: 1.3 !important;
+}
+html.is-smartphone #timetable-board .timetable-table th .tt-day-date {
+  font-size: 0.62rem !important;
+  line-height: 1.1 !important;
+}
+
+/* 각 교시 셀 및 슬롯 카드: 과목명 절대 잘림 방지 & 배지 하단 배치(글자 겹침 원천 차단) */
+html.is-smartphone #timetable-board .timetable-table td {
+  padding: 2px 1.5px !important;
+}
+html.is-smartphone #timetable-board .timetable-table .timetable-slot-card {
+  min-height: 52px !important;
+  height: auto !important;
+  padding: 4px 1.5px !important;
+  border-radius: 0.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+html.is-smartphone #timetable-board .timetable-table .timetable-slot-card .tt-slot-subject {
+  order: 1 !important;
+  font-size: 0.69rem !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.04em !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+html.is-smartphone #timetable-board .timetable-table .timetable-slot-card .tt-slot-teacher {
+  order: 2 !important;
+  font-size: 0.58rem !important;
+  line-height: 1.1 !important;
+  margin-top: 1px !important;
+  max-width: 100% !important;
+}
+/* 스마트폰 주간 표에서는 배지가 과목명을 가리지 않도록 과목명 아래에 정렬 */
+html.is-smartphone #timetable-board .timetable-table .timetable-badge-group {
+  order: 3 !important;
+  position: static !important;
+  margin-top: 2px !important;
+  justify-content: center !important;
+  gap: 1.5px !important;
+  max-width: 100% !important;
+}
+html.is-smartphone #timetable-board .timetable-table .timetable-schedule-badge {
+  min-width: 13px !important;
+  height: 13px !important;
+  font-size: 8px !important;
+  line-height: 13px !important;
+  padding: 0 2px !important;
+  border-radius: 3px !important;
+}
+html.is-smartphone #timetable-board .timetable-table .timetable-schedule-badge.is-emoji {
+  font-size: 12px !important;
+  height: auto !important;
+  line-height: 1 !important;
+}
+/* 셀 배경색으로 창체/공강이 구분되므로 주간 표 내부의 중복 작은 라벨은 숨겨 공간 확보 */
+html.is-smartphone #timetable-board .timetable-table .tt-slot-subtag {
+  display: none !important;
+}
+
+/* 점심시간 행 슬림화 */
+html.is-smartphone #timetable-board .timetable-table .tt-lunch-cell {
+  font-size: 0.62rem !important;
+  padding: 0.25rem 0.1rem !important;
+  white-space: nowrap !important;
+}
+
+/* 공휴일 / 전일행사 / 시험 rowspan 셀 모바일 폭 최적화 */
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-cell {
+  padding: 0.25rem 0.15rem !important;
+}
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-inner {
+  padding: 0.5rem 0 !important;
+  gap: 0.25rem !important;
+}
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-emoji {
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+}
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-title {
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+  word-break: keep-all !important;
+}
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-badge {
+  font-size: 0.56rem !important;
+  padding: 1px 4px !important;
+}
+html.is-smartphone #timetable-board .timetable-table .tt-rowspan-desc {
+  display: none !important;
+}
+
 /* 스마트폰 하단 내비게이션 바 Safe-Area 대응 */
-body.is-smartphone nav.md\:hidden {
+html.is-smartphone nav.md\:hidden {
   padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
-/* 스마트폰 모달 창 최적화 (하단 시트 / 여백 확보) */
-body.is-smartphone #modal-settings > div,
-body.is-smartphone #modal-allergen > div,
-body.is-smartphone #modal-school-info > div,
-body.is-smartphone #modal-dday-setting > div,
-body.is-smartphone #modal-timetable-detail > div {
+/* 스마트폰 모달 창 최적화 (하단 여백 및 스크롤 보장) */
+html.is-smartphone #modal-settings > div,
+html.is-smartphone #modal-allergen > div,
+html.is-smartphone #modal-school-info > div,
+html.is-smartphone #modal-dday-setting > div,
+html.is-smartphone #modal-timetable-detail > div {
   max-height: 86dvh !important;
   border-radius: 1.35rem !important;
 }
+
 
 
 

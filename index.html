@@ -52,7 +52,21 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20261019">
+  <script>
+    (function() {
+      try {
+        var ua = navigator.userAgent || navigator.vendor || window.opera || '';
+        var isPhoneUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|webOS|KAKAOTALK|NAVER|Instagram|FBAN|FBAV|DaumApps|Everytime|Line/i.test(ua);
+        var isClientMobile = !!(navigator.userAgentData && navigator.userAgentData.mobile);
+        var isSmallViewport = window.innerWidth <= 768;
+        var isForceMobile = new URLSearchParams(window.location.search).get('mobile') === '1';
+        if (isPhoneUA || isClientMobile || isSmallViewport || isForceMobile) {
+          document.documentElement.classList.add('is-smartphone');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="bg-[#F8FAFC] dark:bg-slate-900 text-[#0F172A] dark:text-slate-100 min-h-screen font-sans transition-colors duration-200 antialiased pb-20 md:pb-6">
 
@@ -660,6 +674,11 @@
           </div>
         </div>
 
+        <!-- 스마트폰 전용: 요일별 상세 시간표 & 등록 일정(수행·준비물·숙제) 브리핑 카드 (전자칠판/PC에서는 숨김) -->
+        <div id="timetable-mobile-day-panel" class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs p-3.5 space-y-3">
+          <!-- Populated dynamically on smartphone -->
+        </div>
+
       </div>
     </section>
 
@@ -1074,6 +1093,6 @@
   </div>
 
   <!-- Main JavaScript -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20261019"></script>
 </body>
 </html>

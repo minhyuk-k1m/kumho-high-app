@@ -1563,25 +1563,21 @@ function updateKioskUI(isKiosk) {
 
 function isSmartphoneDevice() {
   const ua = navigator.userAgent || navigator.vendor || window.opera || '';
-  // 명시적 스마트폰 User-Agent 패턴 검사 (iPhone, Android Mobile 등)
-  const isPhoneUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|webOS/i.test(ua);
+  // 명시적 스마트폰 및 모바일 인앱 브라우저 User-Agent 패턴 검사
+  const isPhoneUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|webOS|KAKAOTALK|NAVER|Instagram|FBAN|FBAV|DaumApps|Everytime|Line/i.test(ua);
   const isClientHintMobile = !!(navigator.userAgentData && navigator.userAgentData.mobile);
-  // 모바일 브라우저/웹뷰 환경에서 터치 기반 소형 화면(스마트폰 규격) 감지
-  const isSmallTouchScreen = (
-    window.matchMedia &&
-    window.matchMedia('(max-width: 768px)').matches &&
-    (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window || navigator.maxTouchPoints > 0) &&
-    !/CrOS|Macintosh|Windows NT/i.test(ua)
-  );
+  // 스마트폰 화면 규격(768px 이하) 감지 (전자칠판은 1024px~3840px 대화면 환경)
+  const isSmallViewport = window.innerWidth <= 768;
   // URL 파라미터(?mobile=1)로 스마트폰 뷰 테스트 지원
   const urlParams = new URLSearchParams(window.location.search);
   const forceMobile = urlParams.get('mobile') === '1';
 
-  return isPhoneUA || isClientHintMobile || isSmallTouchScreen || forceMobile;
+  return isPhoneUA || isClientHintMobile || isSmallViewport || forceMobile;
 }
 
 function detectAndApplySmartphoneMode() {
   const isPhone = isSmartphoneDevice();
+  const prevIsPhone = state.isSmartphone;
   state.isSmartphone = isPhone;
   if (isPhone) {
     document.documentElement.classList.add('is-smartphone');
@@ -1590,7 +1586,18 @@ function detectAndApplySmartphoneMode() {
     document.documentElement.classList.remove('is-smartphone');
     if (document.body) document.body.classList.remove('is-smartphone');
   }
+  const mobileDayPanel = document.getElementById('timetable-mobile-day-panel');
+  if (mobileDayPanel) {
+    if (isPhone) {
+      mobileDayPanel.classList.remove('hidden');
+    } else {
+      mobileDayPanel.classList.add('hidden');
+    }
+  }
   updateStudentBadge();
+  if (prevIsPhone !== undefined && prevIsPhone !== isPhone && state.lastRenderedDaysData) {
+    renderTimetable(state.selectedGrade, state.selectedClass);
+  }
   return isPhone;
 }
 
@@ -1608,7 +1615,7 @@ function updateStudentBadge() {
   }
   if (boardClassEl) {
     boardClassEl.textContent = state.isSmartphone
-      ? `${grade}학년 ${classNm}반 모바일 보드`
+      ? `${grade}학년 ${classNm}반 스마트 보드`
       : `${grade}학년 ${classNm}반 전자칠판`;
   }
   badge.classList.remove('hidden');
@@ -3467,6 +3474,32 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
       };
     });
 
+    state.lastRenderedDaysData = daysData;
+
+    // 스마트폰 주간 시간표 셀 내부 과목명 의미 단위 줄바꿈 헬퍼 (전자칠판에서는 100% 원문 1줄 표시)
+    const renderResponsiveSubjectHtml = (subject) => {
+      if (!subject) return '';
+      const s = subject.trim();
+      const mobileBreakMap = {
+        '음악 연주와 창작': '음악연주와<br>창작',
+        '인간과 경제활동': '인간과<br>경제활동',
+        '과학탐구실험2': '과학탐구<br>실험2',
+        '과학탐구실험': '과학탐구<br>실험',
+        '자율·자치활동': '자율·자치<br>활동',
+        '자율자치활동': '자율자치<br>활동'
+      };
+      let mobileHtml = mobileBreakMap[s];
+      if (!mobileHtml) {
+        if (s.length >= 6 && s.includes(' ')) {
+          const lastSpace = s.lastIndexOf(' ');
+          mobileHtml = `${s.slice(0, lastSpace).replace(/\s+/g, '')}<br>${s.slice(lastSpace + 1)}`;
+        } else {
+          mobileHtml = s;
+        }
+      }
+      return `<span class="tt-subj-desktop">${s}</span><span class="tt-subj-mobile">${mobileHtml}</span>`;
+    };
+
     // 1) 주간 5일 통합 시간표 표(Table) 렌더링
     if (weekContainer) {
       let tableHtml = `
@@ -3474,20 +3507,22 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
           <thead>
             <tr class="bg-slate-50 dark:bg-slate-800/90 text-xs">
               <th class="w-20 sm:w-28 py-3.5 px-2 text-slate-500 dark:text-slate-400 font-bold border-r border-slate-200 dark:border-slate-700">
-                교시 / 시간
+                <span class="tt-th-desktop">교시 / 시간</span>
+                <span class="tt-th-mobile">교시</span>
               </th>
               ${daysData.map(d => `
-                <th class="py-3 px-2 border-r border-slate-200 dark:border-slate-700 ${d.isToday ? 'timetable-today-col text-brand-700 dark:text-brand-300 font-extrabold border-b-2 border-b-brand-500' : 'text-slate-800 dark:text-slate-100 font-bold'}">
+                <th data-mobile-day-offset="${d.offset}" class="py-3 px-2 border-r border-slate-200 dark:border-slate-700 ${d.isToday ? 'timetable-today-col text-brand-700 dark:text-brand-300 font-extrabold border-b-2 border-b-brand-500' : 'text-slate-800 dark:text-slate-100 font-bold'}">
                   <div class="flex flex-col items-center justify-center space-y-0.5">
                     <div class="flex items-center space-x-1 flex-wrap justify-center gap-0.5">
-                      <span class="text-sm">${d.name}</span>
-                      ${d.isToday ? '<span class="text-[9px] px-1.5 py-0.2 bg-brand-500 text-white rounded-full font-bold">오늘</span>' : ''}
-                      ${d.dayType === 'holiday' ? `<span class="text-[9px] px-1.5 py-0.2 ${d.holidayInfo && d.holidayInfo.isNational ? 'bg-rose-600' : 'bg-rose-500'} text-white rounded-full font-bold">${d.holidayInfo ? d.holidayInfo.badge : '휴일'}</span>` : ''}
-                      ${d.dayType === 'paper_exam' ? '<span class="text-[9px] px-1.5 py-0.2 bg-amber-500 text-white rounded-full font-bold">정기시험</span>' : ''}
-                      ${d.dayType === 'fullday_event' ? '<span class="text-[9px] px-1.5 py-0.2 bg-indigo-600 text-white rounded-full font-bold">행사</span>' : ''}
-                      ${d.dayType === 'mock_exam' ? `<span class="text-[9px] px-1.5 py-0.2 bg-amber-600 text-white rounded-full font-bold">${d.mockExamEvent && d.mockExamEvent.EVENT_NM.includes('수학능력시험') ? '수능' : '모의평가'}</span>` : ''}
+                      <span class="text-sm tt-day-full">${d.name}</span>
+                      <span class="text-xs font-extrabold tt-day-short">${d.short}</span>
+                      ${d.isToday ? '<span class="tt-th-badge text-[9px] px-1.5 py-0.2 bg-brand-500 text-white rounded-full font-bold">오늘</span>' : ''}
+                      ${d.dayType === 'holiday' ? `<span class="tt-th-badge text-[9px] px-1.5 py-0.2 ${d.holidayInfo && d.holidayInfo.isNational ? 'bg-rose-600' : 'bg-rose-500'} text-white rounded-full font-bold">${d.holidayInfo ? d.holidayInfo.badge : '휴일'}</span>` : ''}
+                      ${d.dayType === 'paper_exam' ? '<span class="tt-th-badge text-[9px] px-1.5 py-0.2 bg-amber-500 text-white rounded-full font-bold">정기시험</span>' : ''}
+                      ${d.dayType === 'fullday_event' ? '<span class="tt-th-badge text-[9px] px-1.5 py-0.2 bg-indigo-600 text-white rounded-full font-bold">행사</span>' : ''}
+                      ${d.dayType === 'mock_exam' ? `<span class="tt-th-badge text-[9px] px-1.5 py-0.2 bg-amber-600 text-white rounded-full font-bold">${d.mockExamEvent && d.mockExamEvent.EVENT_NM.includes('수학능력시험') ? '수능' : '모의평가'}</span>` : ''}
                     </div>
-                    <span class="text-[10px] ${d.isToday ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-slate-400'} font-normal">
+                    <span class="text-[10px] tt-day-date ${d.isToday ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-slate-400'} font-normal">
                       ${d.date.getMonth() + 1}.${d.date.getDate()}
                     </span>
                   </div>
@@ -3511,22 +3546,30 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
       ];
 
       rowSlots.forEach((slot, rowIndex) => {
-        tableHtml += `<tr>`;
+        tableHtml += `<tr class="${slot.type === 'lunch' ? 'tt-lunch-row' : 'tt-period-row'}">`;
 
         // 좌측 교시/시간 열 헤더
         if (slot.type === 'period') {
           const p = slot.perio;
+          const timeFull = PERIOD_TIMES[p] || '';
+          const timeShort = timeFull.split('~')[0] || '';
           tableHtml += `
             <td class="py-2.5 px-2 bg-slate-50/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-r border-b border-slate-200 dark:border-slate-700">
-              <div class="text-xs sm:text-sm">${p}교시</div>
-              <div class="text-[10px] text-slate-400 font-normal leading-tight mt-0.5 font-mono">${PERIOD_TIMES[p]}</div>
+              <div class="text-xs sm:text-sm tt-perio-label"><span class="tt-perio-num">${p}</span><span class="tt-perio-unit">교시</span></div>
+              <div class="text-[10px] text-slate-400 font-normal leading-tight mt-0.5 font-mono tt-perio-time">
+                <span class="tt-time-full">${timeFull}</span>
+                <span class="tt-time-short">${timeShort}</span>
+              </div>
             </td>
           `;
         } else if (slot.type === 'lunch') {
           tableHtml += `
             <td class="py-2 px-2 bg-amber-50/60 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 font-bold border-r border-b border-slate-200 dark:border-slate-700">
-              <div class="text-xs">점심시간</div>
-              <div class="text-[10px] text-amber-700/80 dark:text-amber-300 font-normal leading-tight mt-0.5 font-mono">12:30~13:30</div>
+              <div class="text-xs tt-perio-label">점심<span class="tt-perio-unit">시간</span></div>
+              <div class="text-[10px] text-amber-700/80 dark:text-amber-300 font-normal leading-tight mt-0.5 font-mono tt-perio-time">
+                <span class="tt-time-full">12:30~13:30</span>
+                <span class="tt-time-short">12:30</span>
+              </div>
             </td>
           `;
         }
@@ -3540,12 +3583,12 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
             if (rowIndex === 0) {
               const hInfo = d.holidayInfo || getHolidayPresentation(d.holidayEvent);
               tableHtml += `
-                <td rowspan="8" class="p-3 sm:p-4 bg-rose-50/60 dark:bg-rose-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
-                  <div class="flex flex-col items-center justify-center py-8 space-y-2">
-                    <span class="text-3xl">${hInfo.emoji}</span>
-                    <span class="font-extrabold text-sm sm:text-base text-rose-700 dark:text-rose-300">${hInfo.cleanName}</span>
-                    <span class="text-[11px] px-2.5 py-0.5 rounded-full ${hInfo.isNational ? 'bg-rose-200 dark:bg-rose-900/80 text-rose-800 dark:text-rose-200' : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'} font-bold">${hInfo.badge}</span>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-[160px] leading-tight break-keep mx-auto">${hInfo.descTable}</p>
+                <td rowspan="8" class="tt-rowspan-cell p-3 sm:p-4 bg-rose-50/60 dark:bg-rose-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
+                  <div class="flex flex-col items-center justify-center py-8 space-y-2 tt-rowspan-inner">
+                    <span class="text-3xl tt-rowspan-emoji">${hInfo.emoji}</span>
+                    <span class="font-extrabold text-sm sm:text-base text-rose-700 dark:text-rose-300 tt-rowspan-title">${hInfo.cleanName}</span>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full ${hInfo.isNational ? 'bg-rose-200 dark:bg-rose-900/80 text-rose-800 dark:text-rose-200' : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300'} font-bold tt-rowspan-badge">${hInfo.badge}</span>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-[160px] leading-tight break-keep mx-auto tt-rowspan-desc">${hInfo.descTable}</p>
                   </div>
                 </td>
               `;
@@ -3555,12 +3598,12 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
             if (rowIndex === 0) {
               const cleanEventName = stripExtraAnnotations(d.fullDayEvent.EVENT_NM || '학교 행사');
               tableHtml += `
-                <td rowspan="8" class="p-3 sm:p-4 bg-blue-50/70 dark:bg-blue-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
-                  <div class="flex flex-col items-center justify-center py-8 space-y-2">
-                    <span class="text-3xl">🏃‍♂️</span>
-                    <span class="font-extrabold text-sm sm:text-base text-brand-700 dark:text-blue-300">${cleanEventName}</span>
-                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-blue-300 font-bold">전일 학교 행사</span>
-                    <p class="text-[11px] text-slate-400 mt-1 font-medium">전교생 행사 진행 (수업 대체)</p>
+                <td rowspan="8" class="tt-rowspan-cell p-3 sm:p-4 bg-blue-50/70 dark:bg-blue-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
+                  <div class="flex flex-col items-center justify-center py-8 space-y-2 tt-rowspan-inner">
+                    <span class="text-3xl tt-rowspan-emoji">🏃‍♂️</span>
+                    <span class="font-extrabold text-sm sm:text-base text-brand-700 dark:text-blue-300 tt-rowspan-title">${cleanEventName}</span>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-blue-300 font-bold tt-rowspan-badge">전일 학교 행사</span>
+                    <p class="text-[11px] text-slate-400 mt-1 font-medium tt-rowspan-desc">전교생 행사 진행 (수업 대체)</p>
                   </div>
                 </td>
               `;
@@ -3571,12 +3614,12 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
               const cleanMockName = stripExtraAnnotations(d.mockExamEvent.EVENT_NM || '모의평가');
               const isSuneung = d.mockExamEvent && d.mockExamEvent.EVENT_NM.includes('수학능력시험');
               tableHtml += `
-                <td rowspan="8" class="p-3 sm:p-4 bg-amber-50/60 dark:bg-amber-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
-                  <div class="flex flex-col items-center justify-center py-8 space-y-2">
-                    <span class="text-3xl">📝</span>
-                    <span class="font-extrabold text-sm sm:text-base text-amber-800 dark:text-amber-200">${cleanMockName}</span>
-                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold">${isSuneung ? '대학수학능력시험' : '전국연합학력평가'}</span>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">${isSuneung ? '1~5교시 대학수학능력시험 본고사 일과' : '1~7교시 모의고사 평가 일과'}</p>
+                <td rowspan="8" class="tt-rowspan-cell p-3 sm:p-4 bg-amber-50/60 dark:bg-amber-950/25 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
+                  <div class="flex flex-col items-center justify-center py-8 space-y-2 tt-rowspan-inner">
+                    <span class="text-3xl tt-rowspan-emoji">📝</span>
+                    <span class="font-extrabold text-sm sm:text-base text-amber-800 dark:text-amber-200 tt-rowspan-title">${cleanMockName}</span>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold tt-rowspan-badge">${isSuneung ? '대학수학능력시험' : '전국연합학력평가'}</span>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium tt-rowspan-desc">${isSuneung ? '1~5교시 대학수학능력시험 본고사 일과' : '1~7교시 모의고사 평가 일과'}</p>
                   </div>
                 </td>
               `;
@@ -3587,18 +3630,18 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
             if (rowIndex === 0) {
               const cleanExamTitle = stripExtraAnnotations(d.paperExamEvent.EVENT_NM || '정기시험');
               tableHtml += `
-                <td rowspan="4" class="p-3 bg-amber-50/70 dark:bg-amber-950/30 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
-                  <div class="flex flex-col items-center justify-center py-4 space-y-1">
-                    <span class="text-2xl">📝</span>
-                    <span class="font-extrabold text-xs sm:text-sm text-amber-900 dark:text-amber-100">${cleanExamTitle}</span>
+                <td rowspan="4" class="tt-rowspan-cell p-3 bg-amber-50/70 dark:bg-amber-950/30 border-r border-b border-slate-200 dark:border-slate-700 text-center align-middle ${todayColClass}">
+                  <div class="flex flex-col items-center justify-center py-4 space-y-1 tt-rowspan-inner">
+                    <span class="text-2xl tt-rowspan-emoji">📝</span>
+                    <span class="font-extrabold text-xs sm:text-sm text-amber-900 dark:text-amber-100 tt-rowspan-title">${cleanExamTitle}</span>
                   </div>
                 </td>
               `;
             } else if (rowIndex === 4) {
               // 점심시간 행
               tableHtml += `
-                <td class="py-2 px-1 bg-slate-50/80 dark:bg-slate-800/60 text-[10px] text-slate-400 border-r border-b border-slate-200 dark:border-slate-700 ${todayColClass}">
-                  🍱 점심시간
+                <td class="tt-lunch-cell py-2 px-1 bg-slate-50/80 dark:bg-slate-800/60 text-[10px] text-slate-400 border-r border-b border-slate-200 dark:border-slate-700 ${todayColClass}">
+                  🍱 점심<span class="tt-lunch-suffix">시간</span>
                 </td>
               `;
             } else if (rowIndex >= 5) {
@@ -3611,8 +3654,8 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
             // regular: 일반 수업일
             if (slot.type === 'lunch') {
               tableHtml += `
-                <td class="py-2 px-1 bg-slate-50/80 dark:bg-slate-800/60 text-[10px] text-slate-400 border-r border-b border-slate-200 dark:border-slate-700 ${todayColClass}">
-                  🍱 점심시간
+                <td class="tt-lunch-cell py-2 px-1 bg-slate-50/80 dark:bg-slate-800/60 text-[10px] text-slate-400 border-r border-b border-slate-200 dark:border-slate-700 ${todayColClass}">
+                  🍱 점심<span class="tt-lunch-suffix">시간</span>
                 </td>
               `;
             } else {
@@ -3645,11 +3688,11 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                         </div>
                       `;
                     })()}
-                    <div class="font-extrabold text-xs sm:text-sm truncate" title="${periodItem.subject}">
-                      ${periodItem.subject}
+                    <div class="tt-slot-subject font-extrabold text-xs sm:text-sm truncate" title="${periodItem.subject}">
+                      ${renderResponsiveSubjectHtml(periodItem.subject)}
                     </div>
-                    ${teacherDisplay ? `<div class="text-[10px] text-slate-400 dark:text-slate-400 font-medium truncate mt-0.5">${teacherDisplay}</div>` : ''}
-                    <div class="flex items-center justify-center space-x-1 mt-0.5">
+                    ${teacherDisplay ? `<div class="tt-slot-teacher text-[10px] text-slate-400 dark:text-slate-400 font-medium truncate mt-0.5">${teacherDisplay}</div>` : ''}
+                    <div class="tt-slot-subtag flex items-center justify-center space-x-1 mt-0.5">
                       ${periodItem.isChangche ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>' : ''}
                       ${periodItem.isFree ? `<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-400 font-medium">${periodItem.freeNote || '공강'}</span>` : ''}
                     </div>
@@ -3670,6 +3713,9 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
 
       weekContainer.innerHTML = tableHtml;
     }
+
+    // 1-B) 스마트폰 전용: 요일별 상세 시간표 & 등록 일정(수행·준비물·숙제) 브리핑 패널 렌더링
+    renderMobileTimetableDayPanel(daysData, grade, classNm, fromYmd);
 
     // 2) 홈 대시보드 시간표 프리뷰 (항상 '이번 주 오늘' 기준 유지 - 주간 시간표 탭에서 다른 주를 탐색해도 홈 화면 오늘 시간표는 유지)
     const todayMondayYmd = formatDateYYYYMMDD(getMondayOfWeek(state.currentDate));
@@ -3765,6 +3811,10 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                     ? 'text-teal-700 dark:text-teal-300 font-extrabold'
                     : 'text-slate-900 dark:text-slate-100 font-extrabold';
 
+              const schedPreviewStr = (schedules && schedules.length > 0)
+                ? schedules.map(s => `${s.tag}: ${s.text}`).join(' · ')
+                : '';
+
               return `
                 <div class="timetable-slot-card home-period-card cursor-pointer transition ${isNowActive ? 'period-now-active ring-2 ring-brand-600' : ''} ${cardTone}"
                      data-slot-key="${slotKey}"
@@ -3775,11 +3825,22 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                      data-day-name="${todayDayData.short}"
                      data-perio="${item.perio}"
                      data-subject="${item.subject}">
-                  <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="hp-num ${numTone}">${item.perio}</span>
-                    <div class="flex items-baseline gap-2 min-w-0">
-                      <span class="hp-subject ${subjectTone}">${item.subject}</span>
-                      ${teacherDisplay ? `<span class="hp-teacher">${teacherDisplay}</span>` : ''}
+                    <div class="hp-main-info min-w-0 flex-1">
+                      <div class="flex items-baseline gap-2 min-w-0 flex-wrap">
+                        <span class="hp-subject ${subjectTone}">${item.subject}</span>
+                        ${teacherDisplay ? `<span class="hp-teacher">${teacherDisplay}</span>` : ''}
+                        ${item.isFree ? `
+                          <span class="hp-mobile-type-tag text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold">${item.freeNote || '공강'}</span>
+                        ` : item.isChangche ? `
+                          <span class="hp-mobile-type-tag text-[10px] px-1.5 py-0.2 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>
+                        ` : ''}
+                      </div>
+                      <div class="hp-mobile-sub">
+                        <span class="hp-mobile-time font-mono">${item.time}</span>
+                        ${schedPreviewStr ? `<span class="hp-mobile-sched-preview truncate">${schedPreviewStr}</span>` : ''}
+                      </div>
                     </div>
                   </div>
                   <div class="hp-right flex items-center gap-2 shrink-0">
@@ -3804,9 +3865,9 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                       `;
                     })()}
                     ${item.isFree ? `
-                      <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold">${item.freeNote || '공강'}</span>
+                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold">${item.freeNote || '공강'}</span>
                     ` : item.isChangche ? `
-                      <span class="text-xs px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>
+                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>
                     ` : ''}
                     <span class="hp-time ${isNowActive ? '!text-brand-600 dark:!text-brand-400 font-bold' : ''}">${item.time}</span>
                   </div>
@@ -3829,6 +3890,164 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
   } catch (err) {
     console.error('Error rendering timetable:', err);
   }
+}
+
+// 스마트폰 전용: 주간 시간표 하단 요일별 상세 & 등록된 일정(수행·준비물·숙제) 브리핑 카드 렌더링
+function renderMobileTimetableDayPanel(daysData, grade, classNm, fromYmd) {
+  const panel = document.getElementById('timetable-mobile-day-panel');
+  if (!panel || !Array.isArray(daysData) || daysData.length === 0) return;
+
+  if (state.isSmartphone) {
+    panel.classList.remove('hidden');
+  } else {
+    panel.classList.add('hidden');
+  }
+
+  // 기본 선택 요일: 오늘이 포함되면 오늘 요일, 아니면 월요일(0)
+  if (state.mobileTimetableDayOffset === undefined || state.mobileTimetableDayOffset < 0 || state.mobileTimetableDayOffset > 4) {
+    const todayMatch = daysData.find(d => d.isToday);
+    state.mobileTimetableDayOffset = todayMatch ? todayMatch.offset : 0;
+  }
+
+  const activeDay = daysData.find(d => d.offset === state.mobileTimetableDayOffset) || daysData[0];
+
+  // 요일별 등록된 일정 개수 파악
+  const dayTaskCounts = daysData.map(d => {
+    if (d.dayType !== 'regular') return 0;
+    let cnt = 0;
+    d.periods.forEach(pItem => {
+      const sk = `g${grade}_c${classNm}_d${d.dayIndex}_p${pItem.perio}`;
+      const meta = (state.customTimetableMeta && state.customTimetableMeta[sk]) || {};
+      const scheds = getSlotSchedulesForWeek(meta, fromYmd);
+      cnt += (scheds ? scheds.length : 0);
+    });
+    return cnt;
+  });
+
+  const dayTabsHtml = daysData.map((d, idx) => {
+    const isSelected = (d.offset === activeDay.offset);
+    const taskCount = dayTaskCounts[idx];
+    return `
+      <button type="button" data-select-mobile-day="${d.offset}"
+        class="tt-mobile-day-btn flex-1 py-2 px-1 rounded-xl text-xs font-extrabold transition flex flex-col items-center justify-center gap-0.5 border relative ${
+          isSelected
+            ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
+            : d.isToday
+              ? 'bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800'
+              : 'bg-slate-50 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border-slate-200/70 dark:border-slate-700'
+        }">
+        <div class="flex items-center gap-1">
+          <span>${d.short}요일</span>
+          ${taskCount > 0 ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-amber-300' : 'bg-rose-500'}"></span>` : ''}
+        </div>
+        <span class="text-[10px] font-medium ${isSelected ? 'text-brand-100' : 'text-slate-400'}">${d.date.getMonth() + 1}.${d.date.getDate()}${d.isToday ? ' · 오늘' : ''}</span>
+      </button>
+    `;
+  }).join('');
+
+  let bodyHtml = '';
+  if (activeDay.dayType !== 'regular') {
+    const labelMap = {
+      holiday: activeDay.holidayInfo ? `${activeDay.holidayInfo.emoji} ${activeDay.holidayInfo.cleanName}` : '🎉 공휴일 / 휴업일',
+      fullday_event: `🏃‍♂️ ${stripExtraAnnotations(activeDay.fullDayEvent?.EVENT_NM || '학교 행사')}`,
+      mock_exam: `📝 ${stripExtraAnnotations(activeDay.mockExamEvent?.EVENT_NM || '전국연합학력평가')}`,
+      paper_exam: `📝 ${stripExtraAnnotations(activeDay.paperExamEvent?.EVENT_NM || '정기시험')}`
+    };
+    bodyHtml = `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-200/70 dark:border-slate-700 text-center space-y-1">
+        <p class="text-sm font-extrabold text-slate-800 dark:text-slate-100">${labelMap[activeDay.dayType] || '특별 학사일정'}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400">해당 요일은 정규 수업 대신 학사일정이 운영됩니다.</p>
+      </div>
+    `;
+  } else {
+    bodyHtml = `
+      <div class="space-y-1.5">
+        ${activeDay.periods.map(pItem => {
+          const slotKey = `g${grade}_c${classNm}_d${activeDay.dayIndex}_p${pItem.perio}`;
+          const meta = (state.customTimetableMeta && state.customTimetableMeta[slotKey]) || {};
+          const hideTeacher = isTeacherDisabledSlot(pItem.subject, activeDay.dayIndex, pItem.perio);
+          const teacher = hideTeacher ? '' : (meta.teacher || '');
+          const teacherDisplay = teacher ? (teacher.endsWith('T') || teacher.endsWith('t') ? teacher : `${teacher}T`) : '';
+          const schedules = getSlotSchedulesForWeek(meta, fromYmd);
+
+          const tagColorMap = {
+            '수행': 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+            '준비물': 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+            '숙제': 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+            '기타': 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800'
+          };
+
+          const schedulesDetailHtml = (schedules && schedules.length > 0)
+            ? `<div class="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                ${schedules.map(s => {
+                  const badgeObj = getSingleScheduleBadgeDisplay(s);
+                  const pillTone = tagColorMap[s.tag] || tagColorMap['수행'];
+                  const iconPrefix = badgeObj && badgeObj.isEmoji ? `${badgeObj.text} ` : `[${s.tag}] `;
+                  return `<span class="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-lg border ${pillTone}">${iconPrefix}${s.text}</span>`;
+                }).join('')}
+              </div>`
+            : '';
+
+          return `
+            <div class="timetable-slot-card p-2.5 rounded-xl border transition cursor-pointer ${
+              pItem.isChangche
+                ? 'bg-teal-50/60 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/80'
+                : pItem.isFree
+                  ? 'bg-slate-50/50 dark:bg-slate-800/40 border-dashed border-slate-200 dark:border-slate-700 text-slate-400'
+                  : 'bg-slate-50/70 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100'
+            }"
+                 data-slot-key="${slotKey}"
+                 data-week-monday="${fromYmd}"
+                 data-grade="${grade}"
+                 data-class="${classNm}"
+                 data-day-index="${activeDay.dayIndex}"
+                 data-day-name="${activeDay.short}"
+                 data-perio="${pItem.perio}"
+                 data-subject="${pItem.subject}">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                    pItem.isChangche
+                      ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300'
+                      : pItem.isFree
+                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-400'
+                        : 'bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300'
+                  }">${pItem.perio}</span>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-sm font-extrabold ${pItem.isFree ? 'text-slate-400' : 'text-slate-900 dark:text-white'}">${pItem.subject}</span>
+                      ${teacherDisplay ? `<span class="text-xs font-semibold text-slate-400">${teacherDisplay}</span>` : ''}
+                      ${pItem.isChangche ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>' : ''}
+                      ${pItem.isFree ? `<span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-400 font-medium">${pItem.freeNote || '공강'}</span>` : ''}
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-mono">${pItem.time}</div>
+                  </div>
+                </div>
+                <span class="text-[11px] font-bold text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-700 px-2 py-1 rounded-lg border border-slate-200/80 dark:border-slate-600 shrink-0">
+                  ${schedules && schedules.length > 0 ? `일정 ${schedules.length}개` : '+ 일정/관리'}
+                </span>
+              </div>
+              ${schedulesDetailHtml}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  panel.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm">📌</span>
+        <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">${activeDay.name} 교시별 상세 · 과제 브리핑</h3>
+      </div>
+      <span class="text-[11px] text-slate-400">과목 터치 시 일정 추가</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      ${dayTabsHtml}
+    </div>
+    ${bodyHtml}
+  `;
 }
 
 // 11. 탭 전환 처리
@@ -4005,8 +4224,32 @@ function initEventListeners() {
   document.getElementById('btn-school-info')?.addEventListener('click', () => openModal('modal-school-info'));
   document.getElementById('btn-close-school-info')?.addEventListener('click', () => closeModal('modal-school-info'));
 
-  // 시간표 슬롯 클릭 위임 (주간 시간표 및 홈 시간표)
+  // 시간표 슬롯 클릭 위임 (주간 시간표, 모바일 요일별 상세 패널, 홈 시간표) 및 모바일 요일 선택
   document.addEventListener('click', (e) => {
+    const mobileDayBtn = e.target.closest('[data-select-mobile-day]');
+    if (mobileDayBtn) {
+      const nextOffset = parseInt(mobileDayBtn.dataset.selectMobileDay, 10);
+      if (!isNaN(nextOffset) && state.lastRenderedDaysData) {
+        state.mobileTimetableDayOffset = nextOffset;
+        const monday = state.timetableMonday || getMondayOfWeek(state.currentDate);
+        renderMobileTimetableDayPanel(state.lastRenderedDaysData, state.selectedGrade, state.selectedClass, formatDateYYYYMMDD(monday));
+      }
+      return;
+    }
+
+    if (state.isSmartphone) {
+      const dayTh = e.target.closest('th[data-mobile-day-offset]');
+      if (dayTh) {
+        const nextOffset = parseInt(dayTh.dataset.mobileDayOffset, 10);
+        if (!isNaN(nextOffset) && state.lastRenderedDaysData) {
+          state.mobileTimetableDayOffset = nextOffset;
+          const monday = state.timetableMonday || getMondayOfWeek(state.currentDate);
+          renderMobileTimetableDayPanel(state.lastRenderedDaysData, state.selectedGrade, state.selectedClass, formatDateYYYYMMDD(monday));
+        }
+        return;
+      }
+    }
+
     let slotCard = e.target.closest('.timetable-slot-card');
     if (!slotCard) {
       const td = e.target.closest('td');
