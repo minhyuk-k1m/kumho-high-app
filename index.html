@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>금호고 스쿨메이트 | 금호고등학교 학생 포털</title>
+  
+  <!-- Favicon & PWA meta tags -->
+  <meta name="theme-color" content="#1365C8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="금호고 스쿨메이트">
+  <meta name="description" content="광주 금호고등학교 재학생을 위한 실시간 급식, 학사일정, 시간표, 리로스쿨 포털 웹앱">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // Royal Blue & Minimal White theme: brand = cobalt royal blue (#1365C8), dark navy hover (#0E4EA1)
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#2563EB',
+              600: '#1365C8',
+              700: '#0E4EA1',
+              800: '#0A3B7D',
+              900: '#082F63',
+              950: '#041B3B',
+            },
+            accent: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#F8FAFC] dark:bg-slate-900 text-[#0F172A] dark:text-slate-100 min-h-screen font-sans transition-colors duration-200 antialiased pb-20 md:pb-6">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-xs transition-colors">
+    <div class="max-w-[1720px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between">
+      <!-- School Logo & Title -->
+      <div class="flex items-center space-x-2 sm:space-x-2.5 min-w-0 flex-1 mr-2">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-1 shadow-xs overflow-hidden shrink-0">
+          <img src="logo.png" alt="금호고등학교 로고" class="w-full h-full object-contain">
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center space-x-1.5 flex-wrap gap-y-0.5">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">금호고 스쿨메이트</h1>
+            <button id="header-student-badge" class="text-xs font-extrabold bg-brand-50 hover:bg-brand-100 dark:bg-brand-950/70 dark:hover:bg-brand-900 text-brand-700 dark:text-brand-300 border border-brand-200/80 dark:border-brand-800 px-2.5 py-0.5 rounded-full shrink-0 truncate flex items-center space-x-1 shadow-xs transition cursor-pointer" title="학급 설정 변경 (학년/반 선택)">
+              <i data-lucide="monitor" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
+              <span id="header-class-text">1학년 1반 학급보드</span>
+            </button>
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 leading-none mt-0.5 truncate" id="header-date">2026년 9월 9일 (수)</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex items-center space-x-0.5 sm:space-x-1.5 shrink-0">
+        <button id="btn-fullscreen" class="p-1.5 sm:p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" title="전자칠판 전체화면 (키오스크 모드)">
+          <i data-lucide="maximize" class="w-4 h-4 sm:w-5 sm:h-5" id="header-fullscreen-icon"></i>
+        </button>
+        <button id="btn-theme-toggle" class="p-1.5 sm:p-2 text-slate-500 hover:text-amber-500 dark:text-slate-400 dark:hover:text-amber-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="다크 모드 전환">
+          <i data-lucide="moon" class="w-4 h-4 sm:w-5 sm:h-5 dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 sm:w-5 sm:h-5 hidden dark:block text-amber-400"></i>
+        </button>
+        <button id="btn-school-info" class="p-1.5 sm:p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="학교 정보">
+          <i data-lucide="info" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+        </button>
+        <button id="btn-settings-modal" class="p-1.5 sm:p-2 text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="학급 설정 (학년/반 선택)">
+          <i data-lucide="settings" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container (Expanded to 1720px for Electronic Blackboard Full Width) -->
+  <main class="max-w-[1720px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-3 pb-6">
+
+    <!-- Desktop Navigation Pills (Visible on md+) -->
+    <div id="desktop-nav-tabs" class="hidden md:flex items-center space-x-2 bg-white dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 mb-3 shadow-xs">
+      <button class="nav-tab-btn flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold transition active" data-tab="home">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+        <span>홈 / 대시보드</span>
+      </button>
+      <button class="nav-tab-btn flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold transition" data-tab="meal">
+        <i data-lucide="utensils" class="w-4 h-4"></i>
+        <span>오늘의 급식</span>
+      </button>
+      <button class="nav-tab-btn flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold transition" data-tab="schedule">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        <span>학사일정</span>
+      </button>
+      <button class="nav-tab-btn flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg text-sm font-semibold transition" data-tab="timetable">
+        <i data-lucide="clock" class="w-4 h-4"></i>
+        <span>우리반 시간표</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: HOME (Dashboard) - Electronic Blackboard 1-Page Board Layout -->
+    <!-- 좌측(8/12): 실시간 교시 상황판 + [시간표 | 급식(중식/석식 세로)]  /  우측(4/12): 주요 D-Day + 다가오는 학사일정 + 바로가기 -->
+    <section id="tab-home" class="tab-content">
+      <div id="home-board" class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:h-[calc(100vh-150px)] lg:min-h-[620px]">
+
+        <!-- ===== LEFT AREA (Col 1~8) ===== -->
+        <div class="lg:col-span-8 flex flex-col gap-3 min-h-0">
+
+          <!-- [주황] 실시간 교시 상황판 (현재 교시 강조 / 쉬는 시간엔 다음 교시 안내) -->
+          <div id="classroom-live-bar" class="shrink-0 bg-white dark:bg-slate-800 rounded-2xl p-3.5 xl:p-4 border border-slate-200 dark:border-slate-700/80 shadow-xs flex items-center gap-4">
+            <div id="live-period-badge" class="live-badge live-badge-idle">
+              <span class="w-2.5 h-2.5 rounded-full bg-white/90 live-pulse-dot shrink-0"></span>
+              <span id="live-period-text">일과 확인 중...</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-[11px] xl:text-xs font-bold text-slate-400 dark:text-slate-500 truncate" id="live-board-class-name">1학년 1반 전자칠판</div>
+              <p class="text-lg xl:text-2xl font-black text-slate-900 dark:text-white truncate leading-tight mt-0.5" id="live-period-headline">금호고 공식 일과시간과 동기화 중입니다.</p>
+              <p class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5" id="live-period-desc"></p>
+            </div>
+            <button id="btn-kiosk-toggle" type="button" class="shrink-0 flex items-center space-x-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/40 dark:hover:bg-brand-900/60 text-brand-700 dark:text-brand-300 border border-brand-200/80 dark:border-brand-700/70 transition cursor-pointer" title="전자칠판 전체화면 (키오스크 모드)">
+              <i data-lucide="maximize" class="w-4 h-4" id="kiosk-btn-icon"></i>
+              <span id="kiosk-btn-text">전체화면</span>
+            </button>
+          </div>
+
+          <!-- 시간표 + 급식 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0">
+
+            <!-- [빨강] 오늘 우리반 시간표 -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 xl:p-5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col min-h-0">
+              <div class="shrink-0 flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-700/60">
+                <div class="flex items-center space-x-2.5">
+                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-lg xl:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">오늘 우리반 시간표</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" id="home-class-badge">1학년 1반</p>
+                  </div>
+                </div>
+                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="timetable">
+                  <span>주간 시간표</span>
+                  <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
+                </button>
+              </div>
+
+              <!-- 7개 교시가 카드 높이를 가득 채우도록 균등 분배 -->
+              <div id="home-timetable-list" class="flex-1 min-h-0 flex flex-col gap-2">
+                <p class="text-xs text-slate-400 animate-pulse">시간표를 불러오는 중...</p>
+              </div>
+            </div>
+
+            <!-- [파랑] 오늘의 급식 (중식 위 / 석식 아래) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 xl:p-5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col min-h-0">
+              <div class="shrink-0 flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-700/60">
+                <div class="flex items-center space-x-2.5">
+                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+                    <i data-lucide="utensils" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-lg xl:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">오늘의 급식</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" id="home-meal-date-str">오늘 식단</p>
+                  </div>
+                </div>
+                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="meal">
+                  <span>식단 상세</span>
+                  <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
+                </button>
+              </div>
+
+              <div id="home-meal-preview-grid" class="flex-1 min-h-0 flex flex-col gap-3">
+                <!-- 중식 -->
+                <div class="flex-1 min-h-0 rounded-xl p-3.5 xl:p-4 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900/60 border-l-4 border-l-brand-600 flex flex-col">
+                  <div class="shrink-0 flex items-center justify-between mb-2">
+                    <span class="text-sm xl:text-base font-extrabold text-white bg-brand-600 px-3 py-1 rounded-lg">☀️ 중식 (점심)</span>
+                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold" id="home-lunch-kcal">- Kcal</span>
+                  </div>
+                  <ul id="home-lunch-dishes" class="home-dish-list flex-1 min-h-0">
+                    <li class="text-slate-400 animate-pulse">급식 데이터를 불러오는 중...</li>
+                  </ul>
+                </div>
+                <!-- 석식 -->
+                <div class="flex-1 min-h-0 rounded-xl p-3.5 xl:p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 border-l-4 border-l-indigo-500 flex flex-col">
+                  <div class="shrink-0 flex items-center justify-between mb-2">
+                    <span class="text-sm xl:text-base font-extrabold text-white bg-indigo-500 px-3 py-1 rounded-lg">🌙 석식 (저녁)</span>
+                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold" id="home-dinner-kcal">- Kcal</span>
+                  </div>
+                  <ul id="home-dinner-dishes" class="home-dish-list flex-1 min-h-0">
+                    <li class="text-slate-400 animate-pulse">급식 데이터를 불러오는 중...</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== RIGHT AREA (Col 9~12) ===== -->
+        <div class="lg:col-span-4 flex flex-col gap-2.5 min-h-0">
+
+          <!-- [빨강] 주요 D-Day (컴팩트 사이즈 & 기존 기능/디자인 유지) -->
+          <div id="top-dday-banner" class="lg:basis-[30%] shrink-0 bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600 text-white rounded-2xl p-3.5 xl:p-4 shadow-sm flex flex-col justify-between relative overflow-hidden cursor-pointer hover:shadow-md transition-all group border border-brand-700/50" title="클릭하여 주요 D-Day를 직접 설정하거나 학사일정에서 선택하세요">
+            <div class="relative z-10 flex items-center justify-between gap-2">
+              <span class="px-2.5 py-0.5 text-[11px] xl:text-xs font-bold bg-white/20 text-white backdrop-blur-sm rounded-full">🎯 주요 D-Day</span>
+              <span class="inline-flex items-center space-x-1 text-[11px] text-white/70 group-hover:text-white bg-white/10 group-hover:bg-white/20 px-2 py-0.5 rounded-full transition">
+                <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
+                <span>설정</span>
+              </span>
+            </div>
+
+            <div class="relative z-10 flex items-end justify-between gap-3 my-1">
+              <div class="min-w-0">
+                <p class="text-sm xl:text-lg font-bold text-brand-100 leading-snug line-clamp-1" id="banner-dday-title">1차 정기시험 (중간고사)</p>
+                <p class="text-xs xl:text-sm text-white/80 font-semibold mt-0.5" id="banner-dday-date">09.29 (화)</p>
+              </div>
+              <div class="text-5xl xl:text-6xl 2xl:text-7xl font-black tracking-tight leading-none shrink-0 drop-shadow-sm" id="banner-dday-count">D-20</div>
+            </div>
+
+            <p class="relative z-10 text-base xl:text-xl 2xl:text-2xl font-black text-white tracking-tight pt-2 border-t border-white/20 truncate" id="banner-dday-sub">꿈을 향해 진취(進取)하는 금호인!</p>
+
+            <!-- Background decoration -->
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-8 -bottom-10 w-32 h-32 bg-sky-300/10 rounded-full blur-2xl pointer-events-none"></div>
+          </div>
+
+          <!-- [초록] 실시간 시간별 날씨 위젯 (금호고 · 광주 북구 운암2동 기준, 현재 ~ +3시간) -->
+          <div id="home-weather-widget" class="lg:basis-[26%] shrink-0 rounded-2xl px-4 py-2.5 xl:px-5 xl:py-3 shadow-sm flex flex-col justify-between relative overflow-hidden home-weather-card" title="금호고등학교(광주 북구 운암2동) 실시간 시간별 날씨 예보">
+            <div class="flex items-center justify-between text-[11px] font-bold text-white/90">
+              <span class="flex items-center gap-1">
+                <i data-lucide="map-pin" class="w-3 h-3"></i>
+                <span>광주 북구 운암2동 (금호고)</span>
+              </span>
+              <span id="home-weather-live-label" class="text-[10px] font-semibold text-white/85 bg-white/15 px-2 py-0.2 rounded-full">실시간 기상</span>
+            </div>
+
+            <div id="home-weather-hourly" class="flex-1 flex flex-col justify-between pt-1">
+              <!-- JS에서 현재~+3시간 날씨 아이콘, 기온, 곡선 그래프, 강수확률 렌더링 -->
+            </div>
+          </div>
+
+          <!-- [남색] 다가오는 학사일정 (3개 표시) + 하단 바로가기 버튼 -->
+          <div class="flex-1 min-h-0 bg-white dark:bg-slate-800 rounded-2xl p-3.5 xl:p-4 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col">
+            <div class="shrink-0 flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60">
+              <div class="flex items-center space-x-2">
+                <div class="p-1.5 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+                  <i data-lucide="calendar" class="w-4 h-4 xl:w-5 xl:h-5"></i>
+                </div>
+                <h2 class="text-base xl:text-lg font-extrabold text-slate-900 dark:text-white">다가오는 학사일정</h2>
+              </div>
+              <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="schedule">
+                <span>달력 보기</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
+              </button>
+            </div>
+
+            <div id="home-schedule-list" class="flex-1 min-h-0 flex flex-col gap-1.5">
+              <p class="text-xs text-slate-400 animate-pulse">학사일정을 불러오는 중...</p>
+            </div>
+
+            <!-- 바로가기 (작은 버튼) -->
+            <div class="shrink-0 grid grid-cols-4 gap-1.5 pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-700/60">
+              <a href="https://kumho.riroschool.kr/" target="_blank" rel="noopener noreferrer" class="portal-mini-btn">
+                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i><span>리로스쿨</span>
+              </a>
+              <a href="https://kumho.jge.hs.kr/" target="_blank" rel="noopener noreferrer" class="portal-mini-btn">
+                <i data-lucide="school" class="w-3.5 h-3.5"></i><span>공식홈</span>
+              </a>
+              <a href="https://read365.edunet.net/PureScreen/SchoolSearch?schoolName=%EA%B8%88%ED%98%B8%EA%B3%A0%EB%93%B1%ED%95%99%EA%B5%90&provCode=F10&neisCode=F100000131" target="_blank" rel="noopener noreferrer" class="portal-mini-btn">
+                <i data-lucide="book-open" class="w-3.5 h-3.5"></i><span>도서관</span>
+              </a>
+              <a href="http://www.schoolinfo.go.kr/index.jsp?HG_CD=F100000131" target="_blank" rel="noopener noreferrer" class="portal-mini-btn">
+                <i data-lucide="info" class="w-3.5 h-3.5"></i><span>학교알리미</span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- TAB 2: MEAL (오늘의 급식) - Electronic Blackboard Fullscreen Board Layout -->
+    <section id="tab-meal" class="tab-content hidden">
+      <div id="meal-board" class="flex flex-col gap-3 lg:h-[calc(100vh-140px)] lg:min-h-[620px]">
+        
+        <!-- 1. Top Date Navigator & Quick Action Bar -->
+        <div id="meal-header-bar" class="shrink-0 bg-white dark:bg-slate-800 rounded-2xl p-3.5 xl:p-4 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-10 h-10 xl:w-12 xl:h-12 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold shrink-0">
+              <i data-lucide="utensils" class="w-5 h-5 xl:w-6 xl:h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 id="meal-view-date-str" class="text-lg xl:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+                  2026년 9월 9일 (수)
+                </h2>
+                <span class="text-[11px] xl:text-xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 border border-brand-200/80 dark:border-brand-800/80 shrink-0">
+                  급식실 실시간 연동
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">금호고등학교 나이스 공식 학교급식 식단표</p>
+            </div>
+          </div>
+
+          <!-- Quick Navigation Buttons & Allergen Alert -->
+          <div class="flex items-center space-x-2 shrink-0 flex-wrap gap-y-1.5">
+            <!-- Allergen Warning Quick Notification -->
+            <div id="meal-allergen-alert-bar" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs text-amber-800 dark:text-amber-300">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0"></i>
+              <span class="font-bold">알레르기 주의: </span>
+              <span id="meal-allergen-detected-text" class="truncate max-w-[240px]">알레르기 식품 포함</span>
+            </div>
+
+            <div class="flex items-center space-x-1.5 bg-slate-50 dark:bg-slate-700/50 p-1 rounded-xl border border-slate-200/80 dark:border-slate-600/60">
+              <button id="btn-meal-prev" class="p-1.5 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-lg hover:bg-white dark:hover:bg-slate-600 transition cursor-pointer" title="이전 날짜">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+              </button>
+              <input type="date" id="meal-date-input" class="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer">
+              <button id="btn-meal-today" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold rounded-lg transition shadow-xs cursor-pointer">
+                오늘 급식
+              </button>
+              <button id="btn-meal-next" class="p-1.5 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-lg hover:bg-white dark:hover:bg-slate-600 transition cursor-pointer" title="다음 날짜">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Meal Cards Container (Lunch & Dinner 2-Column Side-by-Side Widescreen) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0" id="meal-cards-container">
+          
+          <!-- 중식 카드 (좌측 50%) -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs overflow-hidden flex flex-col min-h-0 justify-between" id="card-lunch">
+            <div class="bg-gradient-to-r from-brand-700 via-brand-800 to-indigo-900 px-5 py-3 xl:py-3.5 text-white flex items-center justify-between shrink-0 shadow-xs">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-xl xl:text-2xl">🍱</span>
+                <span class="text-base xl:text-xl font-black tracking-tight">중식 (점심)</span>
+                <span class="text-[11px] xl:text-xs font-bold bg-white/20 px-2.5 py-0.5 rounded-full text-brand-100">12:30 ~ 13:30</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs text-brand-200 font-semibold hidden sm:inline">총 열량</span>
+                <span class="text-sm xl:text-base font-black bg-white/25 px-3 py-0.5 rounded-full text-white shadow-xs" id="lunch-cal-info">- Kcal</span>
+              </div>
+            </div>
+
+            <!-- 중식 메뉴 목록 & 영양 바 (높이를 가득 채움) -->
+            <div class="p-3.5 xl:p-5 flex-1 min-h-0 flex flex-col justify-between overflow-hidden gap-2.5">
+              <div id="lunch-menu-list" class="flex-1 min-h-0 flex flex-col justify-evenly gap-1.5 overflow-hidden">
+                <p class="text-xs text-slate-400 animate-pulse py-8 text-center">식단 정보를 불러오는 중...</p>
+              </div>
+
+              <!-- 영양 정보 바 -->
+              <div class="meal-ntr-bar">
+                <div class="flex items-center space-x-1.5">
+                  <i data-lucide="apple" class="w-4 h-4 text-brand-500 shrink-0"></i>
+                  <span class="font-bold text-slate-700 dark:text-slate-200">영양 성분 정보</span>
+                </div>
+                <div class="text-[11px] xl:text-xs text-slate-500 dark:text-slate-400 truncate max-w-[65%]" id="lunch-ntr-info">
+                  정보 없음
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 석식 카드 (우측 50%) -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs overflow-hidden flex flex-col min-h-0 justify-between" id="card-dinner">
+            <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-brand-950 px-5 py-3 xl:py-3.5 text-white flex items-center justify-between shrink-0 shadow-xs">
+              <div class="flex items-center space-x-2.5">
+                <span class="text-xl xl:text-2xl">🌙</span>
+                <span class="text-base xl:text-xl font-black tracking-tight">석식 (저녁)</span>
+                <span class="text-[11px] xl:text-xs font-bold bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-200">18:30 ~ 19:30</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs text-indigo-200 font-semibold hidden sm:inline">총 열량</span>
+                <span class="text-sm xl:text-base font-black bg-white/25 px-3 py-0.5 rounded-full text-white shadow-xs" id="dinner-cal-info">- Kcal</span>
+              </div>
+            </div>
+
+            <!-- 석식 메뉴 목록 & 영양 바 (높이를 가득 채움) -->
+            <div class="p-3.5 xl:p-5 flex-1 min-h-0 flex flex-col justify-between overflow-hidden gap-2.5">
+              <div id="dinner-menu-list" class="flex-1 min-h-0 flex flex-col justify-evenly gap-1.5 overflow-hidden">
+                <p class="text-xs text-slate-400 animate-pulse py-8 text-center">식단 정보를 불러오는 중...</p>
+              </div>
+
+              <!-- 영양 정보 바 -->
+              <div class="meal-ntr-bar">
+                <div class="flex items-center space-x-1.5">
+                  <i data-lucide="moon" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+                  <span class="font-bold text-slate-700 dark:text-slate-200">영양 성분 정보</span>
+                </div>
+                <div class="text-[11px] xl:text-xs text-slate-500 dark:text-slate-400 truncate max-w-[65%]" id="dinner-ntr-info">
+                  정보 없음
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- No Meal Fallback (Hidden by default, flex-1 when visible) -->
+        <div id="no-meal-box" class="hidden bg-white dark:bg-slate-800 rounded-2xl p-8 text-center border border-slate-200 dark:border-slate-700 shadow-xs flex-1 flex flex-col items-center justify-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400">
+            <i data-lucide="coffee" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-xl xl:text-2xl font-black text-slate-800 dark:text-slate-200">급식이 제공되지 않는 날입니다</h3>
+          <p class="text-xs xl:text-sm text-slate-500 dark:text-slate-400">주말 또는 공휴일/방학 기간이거나 급식 정보가 등록되지 않았습니다.</p>
+        </div>
+
+        <!-- Allergen Info Footer Note -->
+        <div class="shrink-0 bg-white dark:bg-slate-800 rounded-2xl p-2.5 xl:p-3 border border-slate-200 dark:border-slate-700/80 shadow-xs text-[11px] xl:text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center space-x-1.5 shrink-0 font-bold text-slate-700 dark:text-slate-300">
+            <i data-lucide="info" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+            <span>알레르기 식품 안내</span>
+          </div>
+          <div class="text-[10px] xl:text-[11px] text-slate-400 leading-tight truncate">
+            1.난류 2.우유 3.메밀 4.땅콩 5.대두 6.밀 7.고등어 8.게 9.새우 10.돼지고기 11.복숭아 12.토마토 13.아황산염 14.호두 15.닭고기 16.쇠고기 17.오징어 18.조개류 19.잣
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- TAB 3: SCHEDULE (학사일정 & D-Day) - Electronic Blackboard Fullscreen Board Layout -->
+    <section id="tab-schedule" class="tab-content hidden">
+      <div id="sched-board" class="flex flex-col gap-3 lg:h-[calc(100vh-140px)] lg:min-h-[620px]">
+        
+        <!-- Top Strip: Month Selector & Grade Filter & D-Day Cards in a compact row -->
+        <div id="sched-top-bar" class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center shrink-0">
+          <!-- Month Selector & Grade Filter (Col 1~5) -->
+          <div class="lg:col-span-5 bg-white dark:bg-slate-800 rounded-2xl p-3 xl:p-3.5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-2.5">
+              <button id="btn-sched-prev-month" class="p-2 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition cursor-pointer" title="이전 달">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+              </button>
+              <h2 class="text-lg xl:text-2xl font-black text-slate-900 dark:text-white leading-tight min-w-[125px]" id="sched-current-month-label">
+                2026년 9월
+              </h2>
+              <button id="btn-sched-next-month" class="p-2 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition cursor-pointer" title="다음 달">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+              </button>
+            </div>
+            <!-- Grade Filter Chips -->
+            <div class="flex items-center space-x-1 bg-slate-50 dark:bg-slate-700/50 p-1 rounded-xl border border-slate-200/80 dark:border-slate-600/60">
+              <button class="grade-chip active px-3 py-1.5 text-xs font-extrabold rounded-lg transition" data-grade="all">전체</button>
+              <button class="grade-chip px-3 py-1.5 text-xs font-extrabold rounded-lg transition" data-grade="1">1학년</button>
+              <button class="grade-chip px-3 py-1.5 text-xs font-extrabold rounded-lg transition" data-grade="2">2학년</button>
+              <button class="grade-chip px-3 py-1.5 text-xs font-extrabold rounded-lg transition" data-grade="3">3학년</button>
+            </div>
+          </div>
+
+          <!-- Major D-Day Cards Grid (Col 6~12) -->
+          <div class="lg:col-span-7">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="schedule-dday-cards">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Widescreen 2-Column Grid: Calendar (Left 62%) + Schedule Details (Right 38%) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 min-h-0">
+
+          <!-- 1. Left Column: 월간 인터랙티브 달력 (Col 1~7 or 1~8) -->
+          <div class="lg:col-span-7 xl:col-span-8 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs p-3.5 xl:p-4 flex flex-col min-h-0" id="schedule-calendar-card">
+            <!-- 달력 상단 바 & 색상별 일정 범례 -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-700/60 gap-2 shrink-0">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-brand-100 dark:bg-brand-900/60 text-brand-600 dark:text-brand-300 flex items-center justify-center font-bold shrink-0">
+                  <i data-lucide="calendar" class="w-4 h-4 xl:w-5 xl:h-5"></i>
+                </div>
+                <div>
+                  <h3 class="text-base xl:text-lg font-black text-slate-900 dark:text-white">금호 학사 달력</h3>
+                </div>
+              </div>
+              <!-- 색상별 일정 분류 범례 -->
+              <div class="flex items-center space-x-2 text-[10px] xl:text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold" title="중간·기말고사, 전국연합학력평가, 수능 등">
+                  <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                  <span>시험/평가</span>
+                </span>
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold" title="축제, 체육대회, 테마여행, 방학 등">
+                  <span class="w-2 h-2 rounded-full bg-indigo-600 shrink-0"></span>
+                  <span>행사/축제</span>
+                </span>
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold" title="설명회, 상담주간, 콘서트, 진로 등">
+                  <span class="w-2 h-2 rounded-full bg-brand-600 shrink-0"></span>
+                  <span>진로/학사</span>
+                </span>
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold" title="공휴일, 재량휴업일, 대체공휴일">
+                  <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                  <span>휴업/공휴일</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- 요일 헤더 -->
+            <div class="grid grid-cols-7 text-center text-xs xl:text-sm font-black py-2 border-b border-slate-100 dark:border-slate-700/50 shrink-0">
+              <div class="text-rose-500">일</div>
+              <div class="text-slate-700 dark:text-slate-300">월</div>
+              <div class="text-slate-700 dark:text-slate-300">화</div>
+              <div class="text-slate-700 dark:text-slate-300">수</div>
+              <div class="text-slate-700 dark:text-slate-300">목</div>
+              <div class="text-slate-700 dark:text-slate-300">금</div>
+              <div class="text-blue-500">토</div>
+            </div>
+
+            <!-- 달력 일자 그리드 (flex-1 min-h-0로 화면 높이를 가득 채움) -->
+            <div id="schedule-calendar-grid" class="grid grid-cols-7 gap-1.5 pt-2 flex-1 min-h-0">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- 2. Right Column: 선택한 날짜 상세 일정 & 이달의 전체 학사일정 목록 (Col 8~12 or 9~12) -->
+          <div class="lg:col-span-5 xl:col-span-4 flex flex-col gap-3 min-h-0">
+            
+            <!-- 선택한 날짜의 상세 학사일정 (상단 45%) -->
+            <div id="schedule-day-detail-card" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs p-3.5 xl:p-4 flex flex-col shrink-0 max-h-[48%] overflow-hidden transition-all">
+              <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60 shrink-0">
+                <div class="flex items-center space-x-2">
+                  <div class="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold shrink-0">
+                    <i data-lucide="calendar-check-2" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <h3 class="text-sm xl:text-base font-black text-slate-900 dark:text-white" id="sched-selected-day-title">
+                    <span>선택한 날짜의 학사일정</span>
+                  </h3>
+                </div>
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0" id="sched-selected-day-count">
+                  0개 일정
+                </span>
+              </div>
+
+              <div id="schedule-selected-day-list" class="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- 이달의 전체 학사일정 목록 (하단 55%) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs p-3.5 xl:p-4 flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
+              <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60 shrink-0">
+                <h3 class="text-sm xl:text-base font-black text-slate-900 dark:text-white" id="sched-list-title">
+                  2026년 9월 학사일정 전체
+                </h3>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400" id="sched-item-count">
+                  총 0개
+                </span>
+              </div>
+              
+              <div id="schedule-list-container" class="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
+                <p class="text-xs text-slate-400 animate-pulse text-center py-6">학사일정을 불러오는 중...</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- TAB 4: TIMETABLE (우리반 시간표 - 월~금 주간 시간표) -->
+    <section id="tab-timetable" class="tab-content hidden">
+      <div id="timetable-board" class="flex flex-col gap-2.5 lg:h-[calc(100vh-140px)] lg:min-h-[620px]">
+        
+        <!-- Timetable Header Bar -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 sm:p-3.5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold shrink-0">
+              <i data-lucide="calendar-days" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white" id="timetable-week-range-str">
+                2026.09.14 (월) ~ 09.18 (금)
+              </h2>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between sm:justify-end space-x-1.5 flex-wrap gap-y-1">
+            <!-- Week Navigation Buttons -->
+            <div class="flex items-center bg-slate-50 dark:bg-slate-700/50 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700">
+              <button id="btn-timetable-prev-week" class="p-1 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition" title="이전 주">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-timetable-current-week" class="text-xs font-semibold px-2 py-0.5 rounded-lg text-slate-700 hover:text-brand-600 dark:text-slate-200 dark:hover:text-brand-300 transition">
+                이번 주
+              </button>
+              <button id="btn-timetable-next-week" class="p-1 text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition" title="다음 주">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <button id="btn-timetable-change-class" class="text-xs font-semibold text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/60 transition flex items-center space-x-1 border border-slate-200 dark:border-slate-700" title="내 정보 설정에서 학년/반 변경">
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+              <span>반 변경</span>
+            </button>
+            <button id="btn-timetable-refresh" class="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/40 dark:hover:bg-brand-900 px-2.5 py-1.5 rounded-xl transition flex items-center space-x-1">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>새로고침</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timetable Legend Bar -->
+        <div class="flex items-center justify-between text-xs px-1 text-slate-500 dark:text-slate-400 shrink-0">
+          <div class="flex items-center space-x-3.5 flex-wrap gap-y-1">
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-brand-600 inline-block"></span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">정규 수업</span>
+            </span>
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">창체</span>
+            </span>
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded border border-dashed border-slate-400 bg-slate-100 dark:bg-slate-700 inline-block"></span>
+              <span class="font-medium text-slate-600 dark:text-slate-300">공강 (자율)</span>
+            </span>
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">정기/모의시험</span>
+            </span>
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">휴업/공휴일</span>
+            </span>
+          </div>
+          <span class="text-[11px] text-slate-400 hidden md:inline">
+            * 나이스(NEIS) 교육행정정보시스템 공식 시간표
+          </span>
+        </div>
+
+        <!-- Weekly 5-Day Unified Table Container (월~금 한눈에 보는 통합 표) -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-xs overflow-hidden flex-1 min-h-0 flex flex-col">
+          <div class="overflow-x-auto flex-1 min-h-0 flex flex-col">
+            <div id="timetable-week-container" class="min-w-[640px] flex-1 min-h-0 flex flex-col">
+              <div class="p-8 text-center">
+                <p class="text-xs text-slate-400 animate-pulse">주간 시간표 데이터를 불러오는 중입니다...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- Mobile Bottom Navigation Bar (Visible on mobile screens) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 shadow-lg">
+    <div class="grid grid-cols-4 max-w-lg mx-auto py-1">
+      <button class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 text-brand-600 dark:text-brand-400 font-bold active" data-tab="home">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1">홈</span>
+      </button>
+
+      <button class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 text-slate-500 dark:text-slate-400 font-medium" data-tab="meal">
+        <i data-lucide="utensils" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1">급식</span>
+      </button>
+
+      <button class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 text-slate-500 dark:text-slate-400 font-medium" data-tab="schedule">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1">학사일정</span>
+      </button>
+
+      <button class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 text-slate-500 dark:text-slate-400 font-medium" data-tab="timetable">
+        <i data-lucide="clock" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-1">시간표</span>
+      </button>
+    </div>
+  </nav>
+
+
+  <!-- MODAL: Classroom Settings (전자칠판 학급 설정) -->
+  <div id="modal-settings" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col animate-scaleUp">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center p-1 border border-brand-200/50 dark:border-brand-700/50">
+            <i data-lucide="monitor" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">학급 전광판 설정</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">전자칠판에 띄울 학년과 반을 선택하세요.</p>
+          </div>
+        </div>
+        <button id="btn-close-settings-modal" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs flex-1">
+        <!-- Class Selection Inputs -->
+        <div class="space-y-3 bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+          <h4 class="font-bold text-slate-800 dark:text-slate-100 text-xs flex items-center space-x-1.5">
+            <i data-lucide="school" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+            <span>학급 선택 (전자칠판 게시용)</span>
+          </h4>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">학년 선택</label>
+              <select id="settings-grade" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2.5 font-bold focus:ring-2 focus:ring-brand-500 text-xs">
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">반 선택</label>
+              <select id="settings-class" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2.5 font-bold focus:ring-2 focus:ring-brand-500 text-xs">
+                <option value="1">1반</option>
+                <option value="2">2반</option>
+                <option value="3">3반</option>
+                <option value="4">4반</option>
+                <option value="5">5반</option>
+                <option value="6">6반</option>
+                <option value="7">7반</option>
+                <option value="8">8반</option>
+                <option value="9">9반</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2학년 선택 시 등장하는 개발 중 안내 문구 -->
+          <div id="settings-grade2-dev-notice" class="hidden p-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-200 text-xs flex items-start space-x-2.5 animate-fadeIn">
+            <i data-lucide="construction" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+            <div class="leading-relaxed">
+              <p class="font-extrabold text-amber-900 dark:text-amber-100">🚧 2학년 서비스는 현재 개발 중입니다!</p>
+              <p class="text-[11px] text-amber-700 dark:text-amber-300 mt-0.5">현재 1학년을 대상으로 우선 배포되었으며, 2학년 학급 시간표 및 맞춤 서비스는 열심히 준비 중이니 조금만 기다려 주세요.</p>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-400 leading-normal">
+            * 학급 전자칠판 전체가 함께 보는 시스템으로, 번호나 이름 등의 개인 정보 없이 학년과 반 단위로 시간표 및 급식, 학사일정이 자동 운영됩니다.
+          </p>
+        </div>
+
+        <!-- Quick settings shortcuts -->
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-700 dark:text-slate-300 text-[11px]">학급 알림 설정</h4>
+          <button id="btn-settings-open-allergens" class="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700 transition border border-slate-200/60 dark:border-slate-700 text-left">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="shield-alert" class="w-4 h-4 text-amber-500"></i>
+              <span class="font-medium text-slate-700 dark:text-slate-200">급식 주의 알레르기 성분 설정</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+          </button>
+        </div>
+
+        <!-- Guide Notice -->
+        <div class="bg-brand-50 dark:bg-brand-950/40 p-3 rounded-xl border border-brand-200/70 dark:border-brand-800/60 text-[11px] text-brand-800 dark:text-brand-300 flex items-start space-x-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-brand-600 dark:text-brand-400 shrink-0 mt-0.5"></i>
+          <span>선택한 학년/반의 오늘 시간표와 주간 전체 시간표, 관련 학사일정이 전자칠판에 상시 동기화됩니다.</span>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-end">
+        <button id="btn-save-settings" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
+          학급 저장하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: Allergen Settings -->
+  <div id="modal-allergen" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col animate-scaleUp">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">내 알레르기 설정</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">체크한 식품이 급식 메뉴에 포함되면 경고가 표시됩니다.</p>
+          </div>
+        </div>
+        <button id="btn-close-allergen-modal" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Checkbox Grid) -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 text-sm">
+        <div class="grid grid-cols-2 gap-2" id="allergen-checkboxes-container">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
+        <button id="btn-reset-allergens" class="text-xs font-semibold text-slate-500 hover:text-red-500 dark:text-slate-400 transition">
+          선택 초기화
+        </button>
+        <button id="btn-save-allergens" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: Primary D-Day Settings -->
+  <div id="modal-dday-setting" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col animate-scaleUp">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-dday-title">주요 D-Day 설정</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400" id="modal-dday-sub">우리 반 전용 대표 D-Day를 맞춤 설정합니다.</p>
+          </div>
+        </div>
+        <button id="btn-close-dday-modal" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Two Mode Tabs) -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-sm">
+        
+        <!-- Segmented Tab Controls -->
+        <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-700/50 rounded-2xl gap-1">
+          <button id="tab-dday-mode-schedule" class="py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-300 shadow-xs">
+            <i data-lucide="school" class="w-3.5 h-3.5"></i>
+            <span>학사일정에서 선택</span>
+          </button>
+          <button id="tab-dday-mode-custom" class="py-2 px-3 rounded-xl text-xs font-medium transition flex items-center justify-center space-x-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            <span>내가 직접 추가</span>
+          </button>
+        </div>
+
+        <!-- Section 1: From Schedule Events -->
+        <div id="section-dday-from-schedule" class="space-y-2">
+          <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">금호고 주요 학사일정 중 하나를 선택하세요:</p>
+          <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1" id="dday-schedule-event-list">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+        <!-- Section 2: Custom D-Day Input Form -->
+        <div id="section-dday-custom" class="hidden space-y-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">D-Day 제목</label>
+            <input type="text" id="input-custom-dday-title" placeholder="예: 모의고사, 자격증 시험, 동아리 축제, 생일" maxlength="25" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-brand-500 text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">목표 날짜</label>
+            <input type="date" id="input-custom-dday-date" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-brand-500 text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">응원 문구 (학교 공식 고정)</label>
+            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 border border-slate-200/70 dark:border-slate-700 flex items-center justify-between text-xs">
+              <span class="text-slate-400">공식 구호</span>
+              <span class="font-bold text-brand-700 dark:text-brand-300">꿈을 향해 진취(進取)하는 금호인!</span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-1">* 응원 문구는 학교 공식 구호로 상시 유지되며 변경되지 않습니다.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
+        <button id="btn-reset-dday" class="text-xs font-semibold text-slate-500 hover:text-red-500 dark:text-slate-400 transition" title="가장 가까운 주요 시험 일정으로 자동 설정">
+          기본 추천으로 복원
+        </button>
+        <button id="btn-save-dday" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
+          적용하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: School Info -->
+  <div id="modal-school-info" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col animate-scaleUp">
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-0.5 shadow-sm overflow-hidden shrink-0">
+            <img src="logo.png" alt="금호고등학교 로고" class="w-full h-full object-contain">
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">금호고등학교 안내</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">학교 기본 정보 및 비상 연락망</p>
+          </div>
+        </div>
+        <button id="btn-close-school-info" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div class="bg-slate-50 dark:bg-slate-700/50 p-3.5 rounded-2xl space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400 font-semibold">설립 구분</span>
+            <span class="font-bold text-slate-800 dark:text-slate-100">사립 (학교법인 죽호학원)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400 font-semibold">개교기념일</span>
+            <span class="font-bold text-slate-800 dark:text-slate-100">1973년 3월 8일</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400 font-semibold">교훈</span>
+            <span class="font-bold text-amber-600 dark:text-amber-400">진취 (進取)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-400 font-semibold">교목 / 교화</span>
+            <span class="font-bold text-slate-800 dark:text-slate-100">은행나무 / 백매화</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-700 dark:text-slate-200">연락처 및 위치</h4>
+          <div class="border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 space-y-2.5">
+            <div class="flex items-start space-x-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-slate-400 mt-0.5 shrink-0"></i>
+              <span class="text-slate-600 dark:text-slate-300">전남광주통합특별시 북구 금호로 100 (운암동, 금호고등학교)</span>
+            </div>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/60">
+              <span class="text-slate-600 dark:text-slate-300 flex items-center space-x-1">
+                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>교무실: 062-608-1000</span>
+              </span>
+              <a href="tel:062-608-1000" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-bold rounded-lg transition">전화</a>
+            </div>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/60">
+              <span class="text-slate-600 dark:text-slate-300 flex items-center space-x-1">
+                <i data-lucide="phone" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>행정실: 062-608-1004</span>
+              </span>
+              <a href="tel:062-608-1004" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 font-bold rounded-lg transition">전화</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-[11px] text-slate-400 leading-normal">
+          본 서비스는 교육부 나이스(NEIS) 오픈 API를 활용하여 제작된 금호고등학교 학생 편의용 비공식 웹 앱입니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Timetable Slot Detail & Schedule Management -->
+  <div id="modal-timetable-detail" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col animate-scaleUp">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold border border-brand-200/50 dark:border-brand-700/50">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white" id="modal-timetable-slot-title">시간표 정보 및 일정</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400" id="modal-timetable-slot-sub">선생님 성함과 과제/수행평가 일정을 관리합니다.</p>
+          </div>
+        </div>
+        <button id="btn-close-timetable-modal" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs flex-1">
+        <!-- 1. Teacher Name Input Section -->
+        <div id="slot-teacher-section" class="space-y-2 bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+          <label class="block font-bold text-slate-800 dark:text-slate-100 text-xs flex items-center space-x-1.5">
+            <i data-lucide="user" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+            <span>담당 선생님 성함</span>
+          </label>
+          <div class="flex items-center space-x-2">
+            <input type="text" id="input-slot-teacher" placeholder="예: 홍길동" maxlength="10" class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-brand-500 text-xs">
+          </div>
+          <p class="text-[11px] text-slate-400 leading-normal">
+            * 성함을 입력하시면 시간표 과목 아래에 <span class="font-bold text-slate-600 dark:text-slate-300">"000T"</span> (예: 홍길동T) 형태로 표시됩니다.
+          </p>
+        </div>
+
+        <!-- 2. Schedules / Tasks / Memos Section -->
+        <div class="space-y-3 bg-slate-50 dark:bg-slate-700/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 dark:text-slate-100 text-xs flex items-center space-x-1.5">
+              <i data-lucide="check-square" class="w-4 h-4 text-rose-500"></i>
+              <span>교시별 일정 / 과제 / 수행평가</span>
+            </label>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300" id="slot-schedule-badge-count">0개</span>
+          </div>
+
+          <!-- Tag Selection Buttons -->
+          <div class="flex items-center space-x-2">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">일정 태그:</span>
+            <div class="flex items-center flex-wrap gap-1.5 flex-1" id="slot-tag-selector">
+              <button type="button" class="slot-tag-btn px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition border flex items-center space-x-1 bg-rose-600 text-white border-rose-600 shadow-xs" data-tag="수행">
+                <span>📝 수행평가</span>
+              </button>
+              <button type="button" class="slot-tag-btn px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition border flex items-center space-x-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-amber-50" data-tag="준비물">
+                <span>🎒 준비물</span>
+              </button>
+              <button type="button" class="slot-tag-btn px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition border flex items-center space-x-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50" data-tag="숙제">
+                <span>📚 숙제</span>
+              </button>
+              <button type="button" class="slot-tag-btn px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition border flex items-center space-x-1 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-violet-50" data-tag="기타">
+                <span>📌 기타</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Schedule Input Form -->
+          <div class="flex items-center space-x-2">
+            <input type="text" id="input-slot-new-schedule" placeholder="수행평가 내용 입력 (예: 역사 발표 과제)" maxlength="30" class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-brand-500 text-xs">
+            <button id="btn-add-slot-schedule" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shrink-0 transition">
+              추가
+            </button>
+          </div>
+
+          <!-- Schedule List -->
+          <div id="slot-schedule-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 pt-1">
+            <!-- Injected via JS -->
+          </div>
+          
+          <p class="text-[11px] text-slate-400 leading-normal">
+            * <span class="font-bold text-rose-600 dark:text-rose-400">수행평가</span>는 <span class="font-bold text-rose-600">[수행]</span>, <span class="font-bold text-amber-600 dark:text-amber-400">준비물</span>은 품목에 맞는 <span class="font-bold">맞춤 이모티콘(💻·👟·🎨 등)</span>, <span class="font-bold text-emerald-600 dark:text-emerald-400">숙제</span>는 <span class="font-bold">책 이모티콘(📚)</span>, <span class="font-bold text-violet-600 dark:text-violet-400">기타</span>는 <span class="font-bold text-violet-600">[기타]</span>로 시간표에 표시됩니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
+        <button id="btn-clear-slot-meta" class="text-xs font-semibold text-slate-500 hover:text-red-500 dark:text-slate-400 transition">
+          선생님/일정 비우기
+        </button>
+        <button id="btn-save-slot-meta" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow transition">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-2">
+    알림 메시지
+  </div>
+
+  <!-- Main JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

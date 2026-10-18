@@ -1,0 +1,5 @@
+*.bak*
+test_dom.html
+test_patches.ps1
+.DS_Store
+Thumbs.db

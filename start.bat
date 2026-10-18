@@ -1,0 +1,6 @@
+@echo off
+chcp 65001 > nul
+echo [금호고 스쿨메이트]를 실행합니다...
+echo 브라우저에서 index.html을 직접 엽니다...
+start "" "%~dp0index.html"
+exit
