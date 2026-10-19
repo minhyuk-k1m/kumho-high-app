@@ -48,11 +48,11 @@
     }
   </script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Lucide Icons (defer로 외부 CDN 지연 시에도 시간표·본문 0초 즉시 로딩 보장) -->
+  <script src="https://unpkg.com/lucide@latest" defer onload="if(window.lucide)window.lucide.createIcons()"></script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css?v=20261019">
+  <link rel="stylesheet" href="styles.css?v=20261019_2">
   <script>
     (function() {
       try {
@@ -1093,6 +1093,6 @@
   </div>
 
   <!-- Main JavaScript -->
-  <script src="app.js?v=20261019"></script>
+  <script src="app.js?v=20261019_2"></script>
 </body>
 </html>

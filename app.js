@@ -729,6 +729,9 @@ function getSlotBadgeDisplay(schedules) {
   return badges[badges.length - 1];
 }
 
+// 단일 일정 배지 헬퍼 별칭 (모바일/데스크톱 공통 안전 호출 보장)
+const getSingleScheduleBadgeDisplay = parseSingleScheduleBadge;
+
 // 슬롯 모달 태그 버튼 활성화 UI 갱신 함수 (수행평가 / 준비물 / 숙제 / 기타 4색 구분)
 function setSlotActiveTag(tag) {
   if (!currentActiveSlot) return;
@@ -1157,7 +1160,9 @@ function updateRealtimeBoard() {
   if (boardClassEl) {
     const grade = state.selectedGrade || 1;
     const classNm = state.selectedClass || 1;
-    boardClassEl.textContent = `${grade}학년 ${classNm}반 전자칠판 · 실시간 일과`;
+    boardClassEl.textContent = state.isSmartphone
+      ? `${grade}학년 ${classNm}반 스마트 보드`
+      : `${grade}학년 ${classNm}반 전자칠판 · 실시간 일과`;
   }
 
   const status = getCurrentPeriodStatus(now);
@@ -1841,7 +1846,15 @@ async function fetchMeal(ymd) {
   const url = `${CONFIG.API_BASE}/mealServiceDietInfo?Type=json&ATPT_OFCDC_SC_CODE=${CONFIG.ATPT_OFCDC_SC_CODE}&SD_SCHUL_CODE=${CONFIG.SD_SCHUL_CODE}&MLSV_YMD=${ymd}`;
 
   try {
-    const res = await fetch(url);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      return { lunch: null, dinner: null };
+    }
+
     const data = await res.json();
     let lunch = null;
     let dinner = null;
@@ -1856,7 +1869,7 @@ async function fetchMeal(ymd) {
     state.cache.meals[ymd] = result;
     return result;
   } catch (err) {
-    console.error('Error fetching meal:', err);
+    console.warn('Error fetching meal:', err);
     return { lunch: null, dinner: null };
   }
 }
@@ -1912,14 +1925,14 @@ async function syncHomeDashboardToToday() {
   const headerDate = document.getElementById('header-date');
   if (headerDate) headerDate.textContent = formatDateKorean(now);
 
-  // 2. 홈 오늘의 급식 업데이트
+  // 2. 홈 오늘 우리반 시간표 0ms 최우선 즉시 업데이트 (급식 네트워크 대기 없이 먼저 렌더링)
+  state.timetableMonday = getMondayOfWeek(now);
+  await renderTimetable(state.selectedGrade, state.selectedClass);
+
+  // 3. 홈 오늘의 급식 비동기 업데이트 (타임아웃 보호 적용)
   const todayYmd = formatDateYYYYMMDD(now);
   const data = await fetchMeal(todayYmd);
   updateHomeMealPreview(data, now);
-
-  // 3. 홈 오늘 우리반 시간표 업데이트
-  state.timetableMonday = getMondayOfWeek(now);
-  renderTimetable(state.selectedGrade, state.selectedClass);
 }
 
 async function renderMealsForDate(dateObj) {
@@ -3025,37 +3038,19 @@ function getSupplementalSubject(grade, classNm, dayOffset, period) {
   }
 }
 
-// 주간 5일(월~금) 실제 시간표 획득 (로컬 캐시 0ms 즉시 반환 + 1학년 공식 시간표 직접 연동 / 2, 3학년 병렬 실시간 API)
+// 주간 5일(월~금) 실제 시간표 획득 (1학년 공식 시간표 0ms 직접 생성 / 2, 3학년 로컬 캐시 및 병렬 실시간 API)
 async function fetchWeeklyTimetable(grade, classNm, fromYmd, toYmd, forceRefresh = false) {
-  const cacheKey = `kumho_real_tt_v7_${grade}_${classNm}_${fromYmd}_${toYmd}`;
-
-  // 1) 메모리 캐시 확인
-  if (!forceRefresh && state.cache.timetables[cacheKey]) {
-    return state.cache.timetables[cacheKey];
-  }
-
-  // 2) 로컬스토리지 영구 캐시 확인 (6시간 유효)
-  if (!forceRefresh) {
-    try {
-      const saved = localStorage.getItem(cacheKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.rows) && (Date.now() - (parsed.timestamp || 0)) < 1000 * 60 * 60 * 6) {
-          state.cache.timetables[cacheKey] = parsed.rows;
-          return parsed.rows;
-        }
-      }
-    } catch (e) {
-      console.warn('LocalStorage read error:', e);
-    }
-  }
-
+  const safeGrade = parseInt(grade, 10) || 1;
+  const safeClass = Math.min(Math.max(parseInt(classNm, 10) || 1, 1), 9);
+  const cacheKey = `kumho_real_tt_v7_${safeGrade}_${safeClass}_${fromYmd}_${toYmd}`;
   const monday = parseYMDString(fromYmd);
 
-  // 3) 1학년의 경우 학교 공식 개편안(2026.09.12) 시간표 데이터베이스를 0ms 즉시 생성 반환
-  if (parseInt(grade, 10) === 1) {
-    const cSafe = Math.min(Math.max(parseInt(classNm, 10) || 1, 1), 9);
-    const classTable = KUMHO_GRADE1_OFFICIAL_TIMETABLE[cSafe] || KUMHO_GRADE1_OFFICIAL_TIMETABLE[1];
+  // 1) 1학년의 경우 학교 공식 개편안(2026.09.12) 내장 마스터 시간표를 네트워크·스토리지 영향 없이 0ms 즉시 생성 반환
+  if (safeGrade === 1) {
+    if (!forceRefresh && Array.isArray(state.cache.timetables[cacheKey]) && state.cache.timetables[cacheKey].length > 0) {
+      return state.cache.timetables[cacheKey];
+    }
+    const classTable = KUMHO_GRADE1_OFFICIAL_TIMETABLE[safeClass] || KUMHO_GRADE1_OFFICIAL_TIMETABLE[1];
     const rows = [];
     for (let offset = 0; offset < 5; offset++) {
       const targetDate = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
@@ -3070,7 +3065,7 @@ async function fetchWeeklyTimetable(grade, classNm, fromYmd, toYmd, forceRefresh
             SEM: '2',
             ALL_TI_YMD: ymd,
             GRADE: '1',
-            CLASS_NM: String(cSafe),
+            CLASS_NM: String(safeClass),
             PERIO: String(p),
             ITRT_CNTNT: sub
           });
@@ -3078,13 +3073,28 @@ async function fetchWeeklyTimetable(grade, classNm, fromYmd, toYmd, forceRefresh
       }
     }
     state.cache.timetables[cacheKey] = rows;
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify({
-        timestamp: Date.now(),
-        rows
-      }));
-    } catch (e) {}
     return rows;
+  }
+
+  // 2) 메모리 캐시 확인 (2, 3학년)
+  if (!forceRefresh && Array.isArray(state.cache.timetables[cacheKey]) && state.cache.timetables[cacheKey].length > 0) {
+    return state.cache.timetables[cacheKey];
+  }
+
+  // 3) 로컬스토리지 영구 캐시 확인 (6시간 유효, 빈 배열 제외)
+  if (!forceRefresh) {
+    try {
+      const saved = localStorage.getItem(cacheKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.rows) && parsed.rows.length > 0 && (Date.now() - (parsed.timestamp || 0)) < 1000 * 60 * 60 * 6) {
+          state.cache.timetables[cacheKey] = parsed.rows;
+          return parsed.rows;
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage read error:', e);
+    }
   }
 
   // 4) 2, 3학년의 경우 나이스 Open API로 5일치를 동시 병렬 요청 (0.2~0.5초 고속 수신)
@@ -3095,18 +3105,20 @@ async function fetchWeeklyTimetable(grade, classNm, fromYmd, toYmd, forceRefresh
   }
 
   const dayResults = await Promise.all(
-    weekYmds.map(ymd => fetchSingleDayTimetable(grade, classNm, ymd))
+    weekYmds.map(ymd => fetchSingleDayTimetable(safeGrade, safeClass, ymd))
   );
 
   const allRows = dayResults.flat();
 
   state.cache.timetables[cacheKey] = allRows;
-  try {
-    localStorage.setItem(cacheKey, JSON.stringify({
-      timestamp: Date.now(),
-      rows: allRows
-    }));
-  } catch (e) {}
+  if (allRows.length > 0) {
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({
+        timestamp: Date.now(),
+        rows: allRows
+      }));
+    } catch (e) {}
+  }
 
   return allRows;
 }
@@ -3300,6 +3312,9 @@ function getHolidayPresentation(event) {
 // 주간 시간표 렌더링 (월요일부터 금요일까지 5일 전체 시간표 및 공강 표시)
 async function renderTimetable(grade = state.selectedGrade, classNm = state.selectedClass, forceRefresh = false) {
   try {
+    grade = parseInt(grade, 10) || state.selectedGrade || 1;
+    classNm = Math.min(Math.max(parseInt(classNm, 10) || state.selectedClass || 1, 1), 9);
+
     if (!state.timetableMonday) {
       state.timetableMonday = getMondayOfWeek(state.currentDate);
     }
@@ -3324,9 +3339,9 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
       weekRangeEl.textContent = `${mStr} (월) ~ ${fStr} (금)`;
     }
 
-    // 캐시 여부 확인 및 첫 로딩/새로고침 시 스켈레톤 로딩 UI 표시
+    // 캐시 여부 확인 및 첫 로딩/새로고침 시 스켈레톤 로딩 UI 표시 (1학년은 0ms 내장 데이터이므로 로딩 스피너 생략)
     const cacheKey = `kumho_real_tt_v7_${grade}_${classNm}_${fromYmd}_${toYmd}`;
-    const isCached = !forceRefresh && !!(state.cache.timetables[cacheKey] || localStorage.getItem(cacheKey));
+    const isCached = (grade === 1) || (!forceRefresh && !!(state.cache.timetables[cacheKey] || localStorage.getItem(cacheKey)));
     if (weekContainer && !isCached) {
       weekContainer.innerHTML = `
         <div class="col-span-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center space-y-2.5">
@@ -3714,10 +3729,7 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
       weekContainer.innerHTML = tableHtml;
     }
 
-    // 1-B) 스마트폰 전용: 요일별 상세 시간표 & 등록 일정(수행·준비물·숙제) 브리핑 패널 렌더링
-    renderMobileTimetableDayPanel(daysData, grade, classNm, fromYmd);
-
-    // 2) 홈 대시보드 시간표 프리뷰 (항상 '이번 주 오늘' 기준 유지 - 주간 시간표 탭에서 다른 주를 탐색해도 홈 화면 오늘 시간표는 유지)
+    // 2) 홈 대시보드 시간표 프리뷰 최우선 렌더링 (항상 '이번 주 오늘' 기준 유지 - 주간 시간표 탭에서 다른 주를 탐색해도 홈 화면 오늘 시간표는 유지)
     const todayMondayYmd = formatDateYYYYMMDD(getMondayOfWeek(state.currentDate));
     const isRenderingCurrentWeek = (fromYmd === todayMondayYmd);
 
@@ -3884,6 +3896,13 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
       }
     }
 
+    // 3) 스마트폰 전용: 요일별 상세 시간표 & 등록 일정(수행·준비물·숙제) 브리핑 패널 렌더링 (독립 예외 처리로 홈 시간표 영향 차단)
+    try {
+      renderMobileTimetableDayPanel(daysData, grade, classNm, fromYmd);
+    } catch (mobileErr) {
+      console.warn('Error rendering mobile timetable panel:', mobileErr);
+    }
+
     if (window.lucide) {
       lucide.createIcons();
     }
@@ -3980,7 +3999,7 @@ function renderMobileTimetableDayPanel(daysData, grade, classNm, fromYmd) {
           const schedulesDetailHtml = (schedules && schedules.length > 0)
             ? `<div class="flex flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
                 ${schedules.map(s => {
-                  const badgeObj = getSingleScheduleBadgeDisplay(s);
+                  const badgeObj = parseSingleScheduleBadge(s);
                   const pillTone = tagColorMap[s.tag] || tagColorMap['수행'];
                   const iconPrefix = badgeObj && badgeObj.isEmoji ? `${badgeObj.text} ` : `[${s.tag}] `;
                   return `<span class="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-lg border ${pillTone}">${iconPrefix}${s.text}</span>`;
@@ -4338,19 +4357,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // 1단계: 0ms 즉시 렌더링 (학사일정 및 주간 시간표 마스터 데이터 0초 즉각 출력)
+  // 1단계: 0ms 즉시 렌더링 (학사일정, 주간/오늘 시간표 마스터 데이터 및 실시간 일과 상황판 0초 즉각 출력)
   renderSchedule(state.scheduleYear, state.scheduleMonth);
-  renderTimetable(state.selectedGrade, state.selectedClass);
+  await renderTimetable(state.selectedGrade, state.selectedClass);
+  initRealtimeClock();
 
   if (window.lucide) {
     lucide.createIcons();
   }
 
-  // 2단계: 홈 대시보드 오늘 기준 실시간 동기화 (오늘 날짜, 오늘 급식, 오늘 시간표)
+  // 2단계: 홈 대시보드 오늘 기준 실시간 급식 동기화
   await syncHomeDashboardToToday();
 
-  // 3단계: 전자칠판 실시간 시계 & 일과 상태 상황판 루프 시작 (2단계 기능)
-  initRealtimeClock();
+  // 3단계: 전자칠판 절전 복귀 / 네트워크 재연결 / 지연 로딩 시 자동 복구 워치독
+  window.addEventListener('online', () => {
+    syncHomeDashboardToToday();
+    renderHomeWeatherWidget(true);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const homeList = document.getElementById('home-timetable-list');
+      const weekCont = document.getElementById('timetable-week-container');
+      if ((homeList && homeList.querySelector('.animate-pulse')) || (weekCont && weekCont.querySelector('.animate-pulse'))) {
+        renderTimetable(state.selectedGrade, state.selectedClass);
+      }
+      updateRealtimeBoard();
+    }
+  });
+
+  setTimeout(() => {
+    const homeList = document.getElementById('home-timetable-list');
+    const weekCont = document.getElementById('timetable-week-container');
+    if ((homeList && homeList.querySelector('.animate-pulse')) || (weekCont && weekCont.querySelector('.animate-pulse'))) {
+      renderTimetable(state.selectedGrade, state.selectedClass);
+    }
+  }, 600);
 
   if (window.lucide) {
     lucide.createIcons();
