@@ -52,7 +52,7 @@
   <script src="https://unpkg.com/lucide@latest" defer onload="if(window.lucide)window.lucide.createIcons()"></script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css?v=20261019_2">
+  <link rel="stylesheet" href="styles.css?v=20261021">
   <script>
     (function() {
       try {
@@ -148,7 +148,7 @@
             </div>
             <div class="min-w-0 flex-1">
               <div class="text-[11px] xl:text-xs font-bold text-slate-400 dark:text-slate-500 truncate" id="live-board-class-name">1학년 1반 전자칠판</div>
-              <p class="text-lg xl:text-2xl font-black text-slate-900 dark:text-white truncate leading-tight mt-0.5" id="live-period-headline">금호고 공식 일과시간과 동기화 중입니다.</p>
+              <p class="text-base xl:text-xl font-black text-slate-900 dark:text-white truncate leading-tight mt-0.5" id="live-period-headline">금호고 공식 일과시간과 동기화 중입니다.</p>
               <p class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5" id="live-period-desc"></p>
             </div>
             <button id="btn-kiosk-toggle" type="button" class="shrink-0 flex items-center space-x-1.5 px-3 py-2.5 rounded-xl text-xs font-bold bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/40 dark:hover:bg-brand-900/60 text-brand-700 dark:text-brand-300 border border-brand-200/80 dark:border-brand-700/70 transition cursor-pointer" title="전자칠판 전체화면 (키오스크 모드)">
@@ -163,16 +163,16 @@
             <!-- [빨강] 오늘 우리반 시간표 -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 xl:p-5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col min-h-0">
               <div class="shrink-0 flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center space-x-2.5">
-                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 shrink-0">
                     <i data-lucide="clock" class="w-5 h-5"></i>
                   </div>
-                  <div>
-                    <h2 class="text-lg xl:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">오늘 우리반 시간표</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" id="home-class-badge">1학년 1반</p>
+                  <div class="min-w-0">
+                    <h2 class="text-base xl:text-lg font-extrabold text-slate-900 dark:text-white leading-tight whitespace-nowrap truncate">오늘 우리반 시간표</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap" id="home-class-badge">1학년 1반</p>
                   </div>
                 </div>
-                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="timetable">
+                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center shrink-0 whitespace-nowrap" data-target="timetable">
                   <span>주간 시간표</span>
                   <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
                 </button>
@@ -187,16 +187,16 @@
             <!-- [파랑] 오늘의 급식 (중식 위 / 석식 아래) -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 xl:p-5 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col min-h-0">
               <div class="shrink-0 flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100 dark:border-slate-700/60">
-                <div class="flex items-center space-x-2.5">
-                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                  <div class="p-2 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 shrink-0">
                     <i data-lucide="utensils" class="w-5 h-5"></i>
                   </div>
-                  <div>
-                    <h2 class="text-lg xl:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">오늘의 급식</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" id="home-meal-date-str">오늘 식단</p>
+                  <div class="min-w-0">
+                    <h2 class="text-base xl:text-lg font-extrabold text-slate-900 dark:text-white leading-tight whitespace-nowrap truncate">오늘의 급식</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap" id="home-meal-date-str">오늘 식단</p>
                   </div>
                 </div>
-                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="meal">
+                <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center shrink-0 whitespace-nowrap" data-target="meal">
                   <span>식단 상세</span>
                   <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
                 </button>
@@ -206,8 +206,8 @@
                 <!-- 중식 -->
                 <div class="flex-1 min-h-0 rounded-xl p-3.5 xl:p-4 bg-brand-50/60 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900/60 border-l-4 border-l-brand-600 flex flex-col">
                   <div class="shrink-0 flex items-center justify-between mb-2">
-                    <span class="text-sm xl:text-base font-extrabold text-white bg-brand-600 px-3 py-1 rounded-lg">☀️ 중식 (점심)</span>
-                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold" id="home-lunch-kcal">- Kcal</span>
+                    <span class="text-xs xl:text-sm font-extrabold text-white bg-brand-600 px-2.5 py-1 rounded-lg whitespace-nowrap">☀️ 중식 (점심)</span>
+                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap" id="home-lunch-kcal">- Kcal</span>
                   </div>
                   <ul id="home-lunch-dishes" class="home-dish-list flex-1 min-h-0">
                     <li class="text-slate-400 animate-pulse">급식 데이터를 불러오는 중...</li>
@@ -216,8 +216,8 @@
                 <!-- 석식 -->
                 <div class="flex-1 min-h-0 rounded-xl p-3.5 xl:p-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 border-l-4 border-l-indigo-500 flex flex-col">
                   <div class="shrink-0 flex items-center justify-between mb-2">
-                    <span class="text-sm xl:text-base font-extrabold text-white bg-indigo-500 px-3 py-1 rounded-lg">🌙 석식 (저녁)</span>
-                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold" id="home-dinner-kcal">- Kcal</span>
+                    <span class="text-xs xl:text-sm font-extrabold text-white bg-indigo-500 px-2.5 py-1 rounded-lg whitespace-nowrap">🌙 석식 (저녁)</span>
+                    <span class="text-xs xl:text-sm text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap" id="home-dinner-kcal">- Kcal</span>
                   </div>
                   <ul id="home-dinner-dishes" class="home-dish-list flex-1 min-h-0">
                     <li class="text-slate-400 animate-pulse">급식 데이터를 불러오는 중...</li>
@@ -235,22 +235,22 @@
           <!-- [빨강] 주요 D-Day (컴팩트 사이즈 & 기존 기능/디자인 유지) -->
           <div id="top-dday-banner" class="lg:basis-[30%] shrink-0 bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600 text-white rounded-2xl p-3.5 xl:p-4 shadow-sm flex flex-col justify-between relative overflow-hidden cursor-pointer hover:shadow-md transition-all group border border-brand-700/50" title="클릭하여 주요 D-Day를 직접 설정하거나 학사일정에서 선택하세요">
             <div class="relative z-10 flex items-center justify-between gap-2">
-              <span class="px-2.5 py-0.5 text-[11px] xl:text-xs font-bold bg-white/20 text-white backdrop-blur-sm rounded-full">🎯 주요 D-Day</span>
-              <span class="inline-flex items-center space-x-1 text-[11px] text-white/70 group-hover:text-white bg-white/10 group-hover:bg-white/20 px-2 py-0.5 rounded-full transition">
+              <span class="px-2.5 py-0.5 text-[11px] xl:text-xs font-bold bg-white/20 text-white backdrop-blur-sm rounded-full whitespace-nowrap">🎯 주요 D-Day</span>
+              <span class="inline-flex items-center space-x-1 text-[11px] text-white/70 group-hover:text-white bg-white/10 group-hover:bg-white/20 px-2 py-0.5 rounded-full transition whitespace-nowrap">
                 <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
                 <span>설정</span>
               </span>
             </div>
 
             <div class="relative z-10 flex items-end justify-between gap-3 my-1">
-              <div class="min-w-0">
-                <p class="text-sm xl:text-lg font-bold text-brand-100 leading-snug line-clamp-1" id="banner-dday-title">1차 정기시험 (중간고사)</p>
-                <p class="text-xs xl:text-sm text-white/80 font-semibold mt-0.5" id="banner-dday-date">09.29 (화)</p>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm xl:text-base font-bold text-brand-100 leading-snug truncate" id="banner-dday-title">1차 정기시험 (중간고사)</p>
+                <p class="text-xs xl:text-sm text-white/80 font-semibold mt-0.5 whitespace-nowrap" id="banner-dday-date">09.29 (화)</p>
               </div>
-              <div class="text-5xl xl:text-6xl 2xl:text-7xl font-black tracking-tight leading-none shrink-0 drop-shadow-sm" id="banner-dday-count">D-20</div>
+              <div class="text-4xl xl:text-5xl 2xl:text-6xl font-black tracking-tight leading-none shrink-0 drop-shadow-sm whitespace-nowrap" id="banner-dday-count">D-20</div>
             </div>
 
-            <p class="relative z-10 text-base xl:text-xl 2xl:text-2xl font-black text-white tracking-tight pt-2 border-t border-white/20 truncate" id="banner-dday-sub">꿈을 향해 진취(進取)하는 금호인!</p>
+            <p class="relative z-10 text-sm xl:text-base 2xl:text-lg font-extrabold text-white tracking-tight pt-2 border-t border-white/20 truncate" id="banner-dday-sub">꿈을 향해 진취(進取)하는 금호인!</p>
 
             <!-- Background decoration -->
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -259,12 +259,12 @@
 
           <!-- [초록] 실시간 시간별 날씨 위젯 (금호고 · 광주 북구 운암2동 기준, 현재 ~ +3시간) -->
           <div id="home-weather-widget" class="lg:basis-[26%] shrink-0 rounded-2xl px-4 py-2.5 xl:px-5 xl:py-3 shadow-sm flex flex-col justify-between relative overflow-hidden home-weather-card" title="금호고등학교(광주 북구 운암2동) 실시간 시간별 날씨 예보">
-            <div class="flex items-center justify-between text-[11px] font-bold text-white/90">
-              <span class="flex items-center gap-1">
-                <i data-lucide="map-pin" class="w-3 h-3"></i>
-                <span>광주 북구 운암2동 (금호고)</span>
+            <div class="flex items-center justify-between text-[11px] font-bold text-white/90 gap-2">
+              <span class="flex items-center gap-1 min-w-0 truncate">
+                <i data-lucide="map-pin" class="w-3 h-3 shrink-0"></i>
+                <span class="truncate">광주 북구 운암2동 (금호고)</span>
               </span>
-              <span id="home-weather-live-label" class="text-[10px] font-semibold text-white/85 bg-white/15 px-2 py-0.2 rounded-full">실시간 기상</span>
+              <span id="home-weather-live-label" class="text-[10px] font-semibold text-white/85 bg-white/15 px-2 py-0.2 rounded-full shrink-0 whitespace-nowrap">실시간 기상</span>
             </div>
 
             <div id="home-weather-hourly" class="flex-1 flex flex-col justify-between pt-1">
@@ -275,13 +275,13 @@
           <!-- [남색] 다가오는 학사일정 (3개 표시) + 하단 바로가기 버튼 -->
           <div class="flex-1 min-h-0 bg-white dark:bg-slate-800 rounded-2xl p-3.5 xl:p-4 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col">
             <div class="shrink-0 flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60">
-              <div class="flex items-center space-x-2">
-                <div class="p-1.5 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400">
+              <div class="flex items-center space-x-2 min-w-0">
+                <div class="p-1.5 rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 shrink-0">
                   <i data-lucide="calendar" class="w-4 h-4 xl:w-5 xl:h-5"></i>
                 </div>
-                <h2 class="text-base xl:text-lg font-extrabold text-slate-900 dark:text-white">다가오는 학사일정</h2>
+                <h2 class="text-base xl:text-lg font-extrabold text-slate-900 dark:text-white whitespace-nowrap truncate">다가오는 학사일정</h2>
               </div>
-              <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center" data-target="schedule">
+              <button class="nav-switch-btn text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline flex items-center shrink-0 whitespace-nowrap" data-target="schedule">
                 <span>달력 보기</span>
                 <i data-lucide="chevron-right" class="w-4 h-4 ml-0.5"></i>
               </button>
@@ -1093,6 +1093,6 @@
   </div>
 
   <!-- Main JavaScript -->
-  <script src="app.js?v=20261019_2"></script>
+  <script src="app.js?v=20261021"></script>
 </body>
 </html>

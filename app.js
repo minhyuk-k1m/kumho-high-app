@@ -1349,13 +1349,24 @@ function buildSmoothTempCurveSvg(temps) {
     `C ${xs[2] + 45} ${ys[2]}, ${xs[3] - 45} ${ys[3]}, ${xs[3]} ${ys[3]}`
   ].join(' ');
 
-  const circles = xs.map((x, idx) => `<circle cx="${x}" cy="${ys[idx]}" r="3.4" fill="#FFFFFF" />`).join('');
+  const dotsHtml = ys.map((y) => {
+    const topPct = Math.round((y / 24) * 1000) / 10;
+    return `
+      <div class="hw-dot-col">
+        <span class="hw-curve-dot" style="top: ${topPct}%;"></span>
+      </div>
+    `;
+  }).join('');
 
   return `
-    <svg viewBox="0 0 400 24" class="hw-curve-wrap">
-      <path d="${d}" fill="none" stroke="rgba(255, 255, 255, 0.88)" stroke-width="2" stroke-linecap="round" />
-      ${circles}
-    </svg>
+    <div class="hw-curve-box">
+      <svg viewBox="0 0 400 24" preserveAspectRatio="none" class="hw-curve-svg">
+        <path d="${d}" fill="none" stroke="rgba(255, 255, 255, 0.88)" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+      </svg>
+      <div class="hw-grid-row hw-dots-grid">
+        ${dotsHtml}
+      </div>
+    </div>
   `;
 }
 
@@ -3823,10 +3834,6 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                     ? 'text-teal-700 dark:text-teal-300 font-extrabold'
                     : 'text-slate-900 dark:text-slate-100 font-extrabold';
 
-              const schedPreviewStr = (schedules && schedules.length > 0)
-                ? schedules.map(s => `${s.tag}: ${s.text}`).join(' · ')
-                : '';
-
               return `
                 <div class="timetable-slot-card home-period-card cursor-pointer transition ${isNowActive ? 'period-now-active ring-2 ring-brand-600' : ''} ${cardTone}"
                      data-slot-key="${slotKey}"
@@ -3837,25 +3844,11 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                      data-day-name="${todayDayData.short}"
                      data-perio="${item.perio}"
                      data-subject="${item.subject}">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="flex items-center gap-2.5 xl:gap-3 min-w-0 flex-1">
                     <span class="hp-num ${numTone}">${item.perio}</span>
-                    <div class="hp-main-info min-w-0 flex-1">
-                      <div class="flex items-baseline gap-2 min-w-0 flex-wrap">
-                        <span class="hp-subject ${subjectTone}">${item.subject}</span>
-                        ${teacherDisplay ? `<span class="hp-teacher">${teacherDisplay}</span>` : ''}
-                        ${item.isFree ? `
-                          <span class="hp-mobile-type-tag text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold">${item.freeNote || '공강'}</span>
-                        ` : item.isChangche ? `
-                          <span class="hp-mobile-type-tag text-[10px] px-1.5 py-0.2 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>
-                        ` : ''}
-                      </div>
-                      <div class="hp-mobile-sub">
-                        <span class="hp-mobile-time font-mono">${item.time}</span>
-                        ${schedPreviewStr ? `<span class="hp-mobile-sched-preview truncate">${schedPreviewStr}</span>` : ''}
-                      </div>
-                    </div>
+                    <span class="hp-subject ${subjectTone}" title="${item.subject}">${item.subject}</span>
                   </div>
-                  <div class="hp-right flex items-center gap-2 shrink-0">
+                  <div class="hp-right flex items-center gap-1.5 xl:gap-2 shrink-0">
                     ${isNowActive ? `
                       <span class="now-period-pill px-2 py-1 rounded-md text-xs font-extrabold bg-[#1365C8] text-white flex items-center space-x-1 shrink-0 shadow-xs">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 live-pulse-dot"></span>
@@ -3871,17 +3864,17 @@ async function renderTimetable(grade = state.selectedGrade, classNm = state.sele
                             if (b.isEmoji) {
                               return `<span class="text-xl xl:text-2xl leading-none select-none shrink-0 drop-shadow-2xs" title="${b.title}">${b.text}</span>`;
                             }
-                            return `<span class="min-w-[20px] h-[20px] px-1.5 text-white text-[10px] font-extrabold rounded-[4px] flex items-center justify-center shadow-xs shrink-0" style="background-color: ${b.bgHex || '#E11D48'};" title="${b.title}">${b.text}</span>`;
+                            return `<span class="min-w-[20px] h-[20px] px-1.5 text-white text-[10px] font-extrabold rounded-[4px] flex items-center justify-center shadow-xs shrink-0 whitespace-nowrap" style="background-color: ${b.bgHex || '#E11D48'};" title="${b.title}">${b.text}</span>`;
                           }).join('')}
                         </div>
                       `;
                     })()}
                     ${item.isFree ? `
-                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold">${item.freeNote || '공강'}</span>
+                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-400 font-semibold whitespace-nowrap">${item.freeNote || '공강'}</span>
                     ` : item.isChangche ? `
-                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold">창체</span>
+                      <span class="hp-desktop-type-tag text-xs px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold whitespace-nowrap">창체</span>
                     ` : ''}
-                    <span class="hp-time ${isNowActive ? '!text-brand-600 dark:!text-brand-400 font-bold' : ''}">${item.time}</span>
+                    ${teacherDisplay ? `<span class="hp-teacher ${isNowActive ? '!text-brand-600 dark:!text-brand-400 font-bold' : ''}">${teacherDisplay}</span>` : ''}
                   </div>
                 </div>
               `;
