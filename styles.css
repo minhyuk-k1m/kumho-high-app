@@ -1249,6 +1249,10 @@ html.is-smartphone #header-student-badge {
   font-size: 0.68rem !important;
   padding: 0.15rem 0.5rem !important;
 }
+html.is-smartphone #btn-creator-info {
+  padding: 0.25rem 0.45rem !important;
+  font-size: 0.68rem !important;
+}
 
 /* 스마트폰 메인 컨테이너 및 각 탭 보드: 고정 높이 해제 후 자연스러운 카드 스택 */
 html.is-smartphone main {
@@ -1598,6 +1602,7 @@ html.is-smartphone nav.md\:hidden {
 html.is-smartphone #modal-settings > div,
 html.is-smartphone #modal-allergen > div,
 html.is-smartphone #modal-school-info > div,
+html.is-smartphone #modal-creator-info > div,
 html.is-smartphone #modal-dday-setting > div,
 html.is-smartphone #modal-timetable-detail > div {
   max-height: 86dvh !important;
