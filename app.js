@@ -4236,9 +4236,6 @@ function initEventListeners() {
   document.getElementById('btn-school-info')?.addEventListener('click', () => openModal('modal-school-info'));
   document.getElementById('btn-close-school-info')?.addEventListener('click', () => closeModal('modal-school-info'));
 
-  document.getElementById('btn-creator-info')?.addEventListener('click', () => openModal('modal-creator-info'));
-  document.getElementById('btn-close-creator-info')?.addEventListener('click', () => closeModal('modal-creator-info'));
-
   // 시간표 슬롯 클릭 위임 (주간 시간표, 모바일 요일별 상세 패널, 홈 시간표) 및 모바일 요일 선택
   document.addEventListener('click', (e) => {
     const mobileDayBtn = e.target.closest('[data-select-mobile-day]');
@@ -4281,7 +4278,7 @@ function initEventListeners() {
   // ESC 키로 모든 모달 닫기
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      ['modal-settings', 'modal-allergen', 'modal-school-info', 'modal-creator-info', 'modal-dday-setting', 'modal-timetable-detail'].forEach(id => closeModal(id));
+      ['modal-settings', 'modal-allergen', 'modal-school-info', 'modal-dday-setting', 'modal-timetable-detail'].forEach(id => closeModal(id));
     }
   });
 
@@ -4321,7 +4318,7 @@ function initEventListeners() {
     }
   });
 
-  document.querySelectorAll('#modal-settings, #modal-allergen, #modal-school-info, #modal-creator-info, #modal-dday-setting, #modal-timetable-detail').forEach(modal => {
+  document.querySelectorAll('#modal-settings, #modal-allergen, #modal-school-info, #modal-dday-setting, #modal-timetable-detail').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.add('hidden');
     });
